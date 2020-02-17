@@ -4,10 +4,11 @@ Sensor::Sensor() {
 
 }
 
-void Sensor::init(float safeLimit) {
-  _safeLimit = safeLimit;
-  _readSensor();
-}
+// void Sensor::init(float safeLimit) {
+//   _safeLimit = safeLimit;
+//   _readSensor();
+//   _hasInitialized = true;
+// }
 
 float Sensor::getSafeLimit() {
   return _safeLimit;

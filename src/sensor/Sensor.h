@@ -5,7 +5,7 @@ class Sensor {
   public:
     Sensor();
 
-    void init(float safeLimit);
+    // void init(float safeLimit);
 
     float getSafeLimit();
     void setSafeLimit(float safeLimit);
@@ -15,7 +15,7 @@ class Sensor {
     bool getInitialization();
     float getCurrentReading();
 
-  private:
+  protected:
     float _safeLimit;
     float _currentReading;
     bool _hasInitialized = false;

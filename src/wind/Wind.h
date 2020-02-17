@@ -5,4 +5,6 @@ class Wind : public Sensor {
     Wind() : Sensor() {
       
     }
+
+    void init();
 };
