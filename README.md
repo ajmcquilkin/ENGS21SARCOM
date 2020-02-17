@@ -5,5 +5,5 @@ Building better search and rescue communication - ENGS 21, Dartmouth College, 20
 - Download Arduino from [Arduino.cc](https://www.arduino.cc/)
 - Download VSCode
 - Clone _ENGS21SARCOM_ repo
-- Copy `Wind`, `Temperature`, `Humidity`, `Sensor` folders to Arduino's root _library_ folder
+- Copy all sub-library folders (e.g. `Wind`, `Temperature`, `Sensor`, etc...) to Arduino's root _library_ folder
 - Run `Core.ino` with an Arduino board
