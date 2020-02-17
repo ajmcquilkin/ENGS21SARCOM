@@ -12,7 +12,7 @@
    - - Battery power
 */
 
-// #include <ClimateSensor.h>
+#include <ClimateSensor.h>
 // #include <Wind.h>
 // #include <BatteryController.h>
 
@@ -35,7 +35,11 @@ void setup() {
   pinMode(VOLTAGE_ONE_PIN, INPUT);
   pinMode(VOLTAGE_TWO_PIN, INPUT);
 
-  // ClimateSensor clim = ClimateSensor();
+  ClimateSensor clim = ClimateSensor();
+  clim.init();
+  
+  Serial.println(clim.getCurrentTemperature());
+  Serial.println(clim.getCurrentHumidity());
   // Wind wind = Wind();
 
   // clim.init();

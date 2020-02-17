@@ -13,11 +13,16 @@ class ClimateSensor : public Sensor {
     }
 
     void init();
+    void _readSensor();
+
+    float getCurrentTemperature();
+    float getCurrentHumidity();
+    // float getCurrentPressure();
   
   private:
     DHT _dht;
     
-    float _temperature;
-    float _pressure;
-    float _humidity;
+    float _currentTemperature;
+    float _currentHumidity;
+    // float _currentPressure;
 };
