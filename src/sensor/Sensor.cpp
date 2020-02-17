@@ -1,11 +1,12 @@
 #include "Sensor.h"
 
 Sensor::Sensor() {
-  
+
 }
 
 void Sensor::init(float safeLimit) {
   _safeLimit = safeLimit;
+  _readSensor();
 }
 
 float Sensor::getSafeLimit() {
@@ -17,15 +18,19 @@ void Sensor::setSafeLimit(float safeLimit) {
 }
 
 bool Sensor::aboveSafeLimit() {
-  // Read sensor
+  _readSensor();
   return _currentReading > _safeLimit;
 }
 
 bool Sensor::belowSafeLimit() {
-  // Read sensor
+  _readSensor();
   return _currentReading < _safeLimit;
 }
 
 bool Sensor::getInitialization() {
   return _hasInitialized;
+}
+
+void Sensor::_readSensor() {
+  // Read sensor
 }

@@ -16,6 +16,9 @@
 #include <Temperature.h>
 #include <Wind.h>
 
+#define TEMP_THRESHOLD 1.00
+#define HUM_THRESHOLD 1.00
+
 void setup() {
   Serial.begin(9600);
   

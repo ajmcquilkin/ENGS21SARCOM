@@ -18,6 +18,8 @@ class Sensor {
     float _safeLimit;
     float _currentReading;
     bool _hasInitialized = false;
+
+    void _readSensor();
 };
 
 #endif
