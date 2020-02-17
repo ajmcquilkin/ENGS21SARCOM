@@ -1,4 +1,9 @@
-class Wind {
+// #include "../sensor/Sensor.h"
+#include <Sensor.h>
+
+class Wind : public Sensor {
   public:
-    void windFunction();
+    Wind() : Sensor() {
+      
+    }
 };

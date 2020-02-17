@@ -1,4 +1,9 @@
-class Temperature {
+// #include "../sensor/Sensor.h"
+#include <Sensor.h>
+
+class Temperature : public Sensor {
   public:
-    void temperatureFunction();
+    Temperature() : Sensor() {
+      
+    }
 };

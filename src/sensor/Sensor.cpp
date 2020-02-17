@@ -1,4 +1,8 @@
-#include "Sensor.h";
+#include "Sensor.h"
+
+Sensor::Sensor() {
+  
+}
 
 void Sensor::init(float safeLimit) {
   _safeLimit = safeLimit;

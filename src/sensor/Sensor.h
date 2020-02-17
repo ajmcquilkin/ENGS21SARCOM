@@ -1,3 +1,6 @@
+#ifndef SENSOR_H
+#define SENSOR_H
+
 class Sensor {
   public:
     Sensor();
@@ -16,3 +19,5 @@ class Sensor {
     float _currentReading;
     bool _hasInitialized = false;
 };
+
+#endif

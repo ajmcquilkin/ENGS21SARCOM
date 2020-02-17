@@ -1,6 +1,9 @@
-#include "../sensor/Sensor.h";
+// #include "../sensor/Sensor.h"
+#include <Sensor.h>
 
 class Humidity : public Sensor {
   public:
-    void humidityFunction();
+    Humidity() : Sensor() {
+
+    }
 };

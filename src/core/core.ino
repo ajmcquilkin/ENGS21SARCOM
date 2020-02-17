@@ -12,12 +12,24 @@
  * - - Battery power
  */
 
-#include "humidity/Humidity.h";
-#include "temperature/Temperature.h";
+#include <Humidity.h>
+#include <Temperature.h>
+#include <Wind.h>
 
 void setup() {
-  // put your setup code here, to run once:
+  Serial.begin(9600);
   
+  Temperature temp = Temperature();
+  Humidity hum = Humidity();
+  Wind wind = Wind();
+
+  temp.init(1.00);
+  hum.init(1.00);
+  wind.init(1.00);
+
+  Serial.println(temp.getSafeLimit());
+  Serial.println(hum.getSafeLimit());
+  Serial.println(wind.getSafeLimit());
 }
 
 void loop() {
