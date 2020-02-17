@@ -14,6 +14,7 @@
 
 #include <Arduino.h>
 #include <ClimateSensor.h>
+#include <ControlRelay.h>
 
 #define PRESS_THRESHOLD 1.00
 #define TEMP_THRESHOLD 1.00
@@ -32,8 +33,16 @@ void setup() {
   pinMode(VOLTAGE_ONE_PIN, INPUT);
   pinMode(VOLTAGE_TWO_PIN, INPUT);
 
-  ClimateSensor clim = ClimateSensor();
+  ClimateSensor clim = ClimateSensor(4);
   clim.init();
+
+  ControlRelay cr = ControlRelay(6);
+  cr.init();
+
+  cr.enablePower();
+  delay(2000);
+  cr.disablePower();
+
 
   Serial.println(clim.getCurrentTemperature());
   Serial.println(clim.getCurrentHumidity());
