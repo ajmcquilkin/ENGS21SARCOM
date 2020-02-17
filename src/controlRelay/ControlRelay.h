@@ -1,6 +1,6 @@
 class ControlRelay {
   public:
-    ControlRelay(int _pin, bool activeLow=true);
+    ControlRelay(int, bool=true);
 
     void init();
 

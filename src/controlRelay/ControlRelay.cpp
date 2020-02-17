@@ -2,13 +2,13 @@
 #include <ControlRelay.h>
 using namespace std;
 
-ControlRelay::ControlRelay(int pin, bool activeLow=true) {
+ControlRelay::ControlRelay(int pin, bool activeLow) {
   _activeLow = activeLow;
   _powerEnabled = false;
   _pin = pin;
 }
 
-ControlRelay::init() {
+void ControlRelay::init() {
   pinMode(_pin, OUTPUT);
 }
 
@@ -26,7 +26,7 @@ bool ControlRelay::powerEnabled() {
 }
 
 bool ControlRelay::powerDisabled() {
-  return !_powerEnabled
+  return !_powerEnabled;
 }
 
 void ControlRelay::enablePower() {
