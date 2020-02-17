@@ -31,6 +31,11 @@ bool Sensor::getInitialization() {
   return _hasInitialized;
 }
 
+float Sensor::getCurrentReading() {
+  _readSensor();
+  return _currentReading;
+}
+
 void Sensor::_readSensor() {
   // Read sensor
 }

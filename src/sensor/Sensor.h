@@ -13,6 +13,7 @@ class Sensor {
     bool belowSafeLimit();
 
     bool getInitialization();
+    float getCurrentReading();
 
   private:
     float _safeLimit;
