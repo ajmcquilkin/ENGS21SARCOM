@@ -1,0 +1,5 @@
+{
+    "sketch": "src\\core\\core.ino",
+    "output": "build",
+    "port": "COM4"
+}
