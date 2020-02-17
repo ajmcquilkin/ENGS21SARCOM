@@ -1,6 +1,6 @@
 class ControlLED {
   public:
-    ControlLED(int rPin, int gPin, int bPin);
+    ControlLED(int rPin, int gPin, int bPin, bool commonAnode=true, int resolution=255);
 
     void init();
 
@@ -14,5 +14,8 @@ class ControlLED {
 
     int _rValue;
     int _gValue;
-    int _blueValue;
+    int _bValue;
+
+    bool _commonAnode;
+    int _resolution;
 };
