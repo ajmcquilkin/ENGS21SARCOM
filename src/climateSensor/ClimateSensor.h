@@ -7,7 +7,7 @@
 
 class ClimateSensor : public Sensor {
   public:
-    ClimateSensor(int pin=4) :
+    ClimateSensor(int pin) :
       Sensor(), _dht(pin, DHT11) {
 
     }
