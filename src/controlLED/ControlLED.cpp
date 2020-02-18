@@ -17,6 +17,10 @@ void ControlLED::init() {
   pinMode(_rPin, OUTPUT);
   pinMode(_gPin, OUTPUT);
   pinMode(_bPin, OUTPUT);
+
+  analogWrite(_rPin, 0);
+  analogWrite(_gPin, 0);
+  analogWrite(_bPin, 0);
 }
 
 void ControlLED::setRGB(int r, int g, int b) {
