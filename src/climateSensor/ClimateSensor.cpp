@@ -7,7 +7,7 @@ void ClimateSensor::init() {
 }
 
 void ClimateSensor::_readSensor() {
-  _currentTemperature = _dht.readTemperature();
+  _currentTemperature = _dht.readTemperature(_fahrenheit);
   _currentHumidity = _dht.readHumidity();
   // _currentPressure = _dht.readPressure(); // Not yet supported
 }

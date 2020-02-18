@@ -7,9 +7,9 @@
 
 class ClimateSensor : public Sensor {
   public:
-    ClimateSensor(int pin) :
+    ClimateSensor(int pin, bool fahrenheit=false) :
       Sensor(), _dht(pin, DHT11) {
-
+        _fahrenheit = fahrenheit;
     }
 
     void init();
@@ -22,6 +22,8 @@ class ClimateSensor : public Sensor {
   private:
     DHT _dht;
     
+    bool _fahrenheit;
+
     float _currentTemperature;
     float _currentHumidity;
     // float _currentPressure;
