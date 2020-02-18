@@ -33,7 +33,7 @@
 #define VOLTAGE_THRESHOLD 2
 int voltageOne, voltageTwo, voltageThree, pastVoltageOne, pastVoltageTwo, pastVoltageThree;
 
-ClimateSensor clim = ClimateSensor(4);
+ClimateSensor clim = ClimateSensor(4, true);
 ControlRelay cr = ControlRelay(7);
 ControlLED cl = ControlLED(3, 5, 6);
 
@@ -126,7 +126,7 @@ void loop() {
   // delay(1);
 
   checkSystemStatus();
-  delay(50);
+  delay(100);
 }
 
 void checkSystemStatus() {
