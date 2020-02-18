@@ -6,6 +6,7 @@
    - - Wind
    - - Temperature
    - - Humidity
+   - - Accelerometer
    - Bottom:
    - - Temperature
    - - Humidity
@@ -17,10 +18,9 @@
 #include <ControlRelay.h>
 #include <ControlLED.h>
 
-#define PRESS_THRESHOLD 1.00
-#define TEMP_THRESHOLD 1.00
-#define HUM_THRESHOLD 1.00
-#define WIND_THRESHOLD 1.00
+#define MIN_TEMP -20
+#define MAX_TEMP 80
+#define MAX_HUM 80
 
 #define VOLTAGE_ONE_PIN A0
 #define VOLTAGE_TWO_PIN A1
@@ -33,6 +33,10 @@
 #define VOLTAGE_THRESHOLD 2
 int voltageOne, voltageTwo, voltageThree, pastVoltageOne, pastVoltageTwo, pastVoltageThree;
 
+ClimateSensor clim = ClimateSensor(4);
+ControlRelay cr = ControlRelay(7);
+ControlLED cl = ControlLED(3, 5, 6);
+
 void setup() {
   Serial.begin(9600);
 
@@ -44,23 +48,43 @@ void setup() {
   pinMode(LED_PIN_G, OUTPUT);
   pinMode(LED_PIN_B, OUTPUT);
 
-  ClimateSensor clim = ClimateSensor(4);
   clim.init();
-
-  ControlRelay cr = ControlRelay(6);
   cr.init();
-
-  ControlLED cl = ControlLED(3, 5, 6);
   cl.init();
 
   cr.enablePower();
-  cl.setRGB(255, 255, 255);
   delay(2000);
 
   cr.disablePower();
-  cl.setRGB(0, 0, 255);
   delay(2000);
 
+  cl.setLEDState(ControlLED::UNDEF);
+  Serial.println("UNDEF");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::SYSTEMERROR);
+  Serial.println("SYSTEMERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::TEMPERROR);
+  Serial.println("TEMPERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::HUMIDERROR);
+  Serial.println("HUMIDERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::POWERERROR);
+  Serial.println("POWERERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::WARNING);
+  Serial.println("WARNING");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::OK);
+  Serial.println("OK");
+  delay(3000);
 
   Serial.println(clim.getCurrentTemperature());
   Serial.println(clim.getCurrentHumidity());
@@ -71,33 +95,62 @@ void setup() {
 }
 
 void loop() {
-  voltageOne = analogRead(VOLTAGE_ONE_PIN);
-  voltageTwo = analogRead(VOLTAGE_TWO_PIN);
-  voltageThree = analogRead(VOLTAGE_THREE_PIN);
+  // voltageOne = analogRead(VOLTAGE_ONE_PIN);
+  // voltageTwo = analogRead(VOLTAGE_TWO_PIN);
+  // voltageThree = analogRead(VOLTAGE_THREE_PIN);
 
-  analogWrite(LED_PIN_R, map(voltageOne, 1023, 0, 0, 255));
-  analogWrite(LED_PIN_G, map(voltageTwo, 1023, 0, 0, 255));
-  analogWrite(LED_PIN_B, map(voltageThree, 1023, 0, 0, 255));
+  // analogWrite(LED_PIN_R, map(voltageOne, 1023, 0, 0, 255));
+  // analogWrite(LED_PIN_G, map(voltageTwo, 1023, 0, 0, 255));
+  // analogWrite(LED_PIN_B, map(voltageThree, 1023, 0, 0, 255));
 
-  bool voltageOneDisplay = abs(voltageOne - pastVoltageOne) > VOLTAGE_THRESHOLD;
-  bool voltageTwoDisplay = abs(voltageTwo - pastVoltageTwo) > VOLTAGE_THRESHOLD;
-  bool voltageThreeDisplay = abs(voltageThree - pastVoltageThree) > VOLTAGE_THRESHOLD;
+  // bool voltageOneDisplay = abs(voltageOne - pastVoltageOne) > VOLTAGE_THRESHOLD;
+  // bool voltageTwoDisplay = abs(voltageTwo - pastVoltageTwo) > VOLTAGE_THRESHOLD;
+  // bool voltageThreeDisplay = abs(voltageThree - pastVoltageThree) > VOLTAGE_THRESHOLD;
 
-  if (voltageOneDisplay || voltageTwoDisplay || voltageThreeDisplay) {
-    Serial.print("Voltage One: ");
-    Serial.print(voltageOne);
-    Serial.print("\t");
-    Serial.print("Voltage Two: ");
-    Serial.print(voltageTwo);
-    Serial.print("\t");
-    Serial.print("Voltage Three: ");
-    Serial.print(voltageThree);
-    Serial.println();
+  // if (voltageOneDisplay || voltageTwoDisplay || voltageThreeDisplay) {
+  //   Serial.print("Voltage One: ");
+  //   Serial.print(voltageOne);
+  //   Serial.print("\t");
+  //   Serial.print("Voltage Two: ");
+  //   Serial.print(voltageTwo);
+  //   Serial.print("\t");
+  //   Serial.print("Voltage Three: ");
+  //   Serial.print(voltageThree);
+  //   Serial.println();
+  // }
+
+  // pastVoltageOne = voltageOne;
+  // pastVoltageTwo = voltageTwo;
+  // pastVoltageThree = voltageThree;
+
+  // delay(1);
+
+  checkSystemStatus();
+  delay(50);
+}
+
+void checkSystemStatus() {
+  int temp, humid, press;
+
+  temp = clim.getCurrentTemperature();
+  humid = clim.getCurrentHumidity();
+  // press = clim.getCurrentPressure();
+
+  Serial.print("Temperature: ");
+  Serial.print(temp);
+  Serial.print("\t");
+  Serial.print("Humidity: ");
+  Serial.print(humid);
+  // Serial.print("\t");
+  // Serial.print("Voltage Three: ");
+  // Serial.print(voltageThree);
+  Serial.println();
+
+  if (temp < MIN_TEMP || MAX_TEMP < temp) {
+    cl.setLEDState(ControlLED::TEMPERROR);
+  } else if (MAX_HUM < humid) {
+    cl.setLEDState(ControlLED::HUMIDERROR);
+  } else {
+    cl.setLEDState(ControlLED::OK);
   }
-
-  pastVoltageOne = voltageOne;
-  pastVoltageTwo = voltageTwo;
-  pastVoltageThree = voltageThree;
-
-  delay(1);
 }
