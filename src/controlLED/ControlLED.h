@@ -1,10 +1,12 @@
 class ControlLED {
   public:
     ControlLED(int rPin, int gPin, int bPin, bool commonAnode=true, int resolution=255);
+    enum LEDState { UNDEF, SYSTEMERROR, TEMPERROR, HUMIDERROR, POWERERROR, WARNING, OK };
 
     void init();
 
     void setRGB(int r, int g, int b);
+    void setLEDState(LEDState s);
     // void fadeToRGB(int r, int g, int b, int msDuration);
 
   private:
