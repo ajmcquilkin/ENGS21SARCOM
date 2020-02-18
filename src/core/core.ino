@@ -57,6 +57,8 @@ void setup() {
 
   cr.disablePower();
   delay(2000);
+  
+  cr.enablePower();
 
   cl.setLEDState(ControlLED::UNDEF);
   Serial.println("UNDEF");
@@ -149,9 +151,12 @@ void checkSystemStatus() {
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
     cl.setLEDState(ControlLED::HUMIDERROR);
+    cr.disablePower();
   } else if (temp < MIN_TEMP || MAX_TEMP < temp) {
     cl.setLEDState(ControlLED::TEMPERROR);
+    cr.disablePower();
   } else {
     cl.setLEDState(ControlLED::OK);
+    cr.enablePower();
   }
 }
