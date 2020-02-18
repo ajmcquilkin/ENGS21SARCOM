@@ -142,14 +142,15 @@ void checkSystemStatus() {
   Serial.print("Humidity: ");
   Serial.print(humid);
   // Serial.print("\t");
-  // Serial.print("Voltage Three: ");
-  // Serial.print(voltageThree);
+  // Serial.print("Pressure: ");
+  // Serial.print(press);
   Serial.println();
 
-  if (temp < MIN_TEMP || MAX_TEMP < temp) {
-    cl.setLEDState(ControlLED::TEMPERROR);
-  } else if (MAX_HUM < humid) {
+  // Note: This will determine the relative importance of each error
+  if (MAX_HUM < humid) {
     cl.setLEDState(ControlLED::HUMIDERROR);
+  } else if (temp < MIN_TEMP || MAX_TEMP < temp) {
+    cl.setLEDState(ControlLED::TEMPERROR);
   } else {
     cl.setLEDState(ControlLED::OK);
   }
