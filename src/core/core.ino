@@ -17,6 +17,7 @@
 #include <ClimateSensor.h>
 #include <ControlRelay.h>
 #include <ControlLED.h>
+#include <BatteryController.h>
 
 #define MIN_TEMP -20
 #define MAX_TEMP 80
@@ -37,6 +38,9 @@ ClimateSensor clim = ClimateSensor(4, true);
 ControlRelay cr = ControlRelay(7);
 ControlLED cl = ControlLED(3, 5, 6);
 
+BatteryController b1 = BatteryController(A0, BatteryController::LiPo);
+BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
+
 void setup() {
   Serial.begin(9600);
 
@@ -53,40 +57,40 @@ void setup() {
   cl.init();
 
   cr.enablePower();
-  delay(2000);
+  // delay(2000);
 
-  cr.disablePower();
-  delay(2000);
+  // cr.disablePower();
+  // delay(2000);
   
-  cr.enablePower();
+  // cr.enablePower();
 
-  cl.setLEDState(ControlLED::UNDEF);
-  Serial.println("UNDEF");
-  delay(3000);
+  // cl.setLEDState(ControlLED::UNDEF);
+  // Serial.println("UNDEF");
+  // delay(3000);
 
-  cl.setLEDState(ControlLED::SYSTEMERROR);
-  Serial.println("SYSTEMERROR");
-  delay(3000);
+  // cl.setLEDState(ControlLED::SYSTEMERROR);
+  // Serial.println("SYSTEMERROR");
+  // delay(3000);
 
-  cl.setLEDState(ControlLED::TEMPERROR);
-  Serial.println("TEMPERROR");
-  delay(3000);
+  // cl.setLEDState(ControlLED::TEMPERROR);
+  // Serial.println("TEMPERROR");
+  // delay(3000);
 
-  cl.setLEDState(ControlLED::HUMIDERROR);
-  Serial.println("HUMIDERROR");
-  delay(3000);
+  // cl.setLEDState(ControlLED::HUMIDERROR);
+  // Serial.println("HUMIDERROR");
+  // delay(3000);
 
-  cl.setLEDState(ControlLED::POWERERROR);
-  Serial.println("POWERERROR");
-  delay(3000);
+  // cl.setLEDState(ControlLED::POWERERROR);
+  // Serial.println("POWERERROR");
+  // delay(3000);
 
-  cl.setLEDState(ControlLED::WARNING);
-  Serial.println("WARNING");
-  delay(3000);
+  // cl.setLEDState(ControlLED::WARNING);
+  // Serial.println("WARNING");
+  // delay(3000);
 
-  cl.setLEDState(ControlLED::OK);
-  Serial.println("OK");
-  delay(3000);
+  // cl.setLEDState(ControlLED::OK);
+  // Serial.println("OK");
+  // delay(3000);
 
   Serial.println(clim.getCurrentTemperature());
   Serial.println(clim.getCurrentHumidity());
@@ -127,6 +131,14 @@ void loop() {
 
   // delay(1);
 
+  Serial.print(b1.getMinBatteryVoltage());
+  Serial.print("\t");
+  Serial.print(b1.getMaxBatteryVoltage());
+  Serial.print("\t");
+  Serial.print(b2.getMinBatteryVoltage());
+  Serial.print("\t");
+  Serial.println(b2.getMaxBatteryVoltage());
+
   checkSystemStatus();
   delay(100);
 }
@@ -138,15 +150,19 @@ void checkSystemStatus() {
   humid = clim.getCurrentHumidity();
   // press = clim.getCurrentPressure();
 
-  Serial.print("Temperature: ");
-  Serial.print(temp);
-  Serial.print("\t");
-  Serial.print("Humidity: ");
-  Serial.print(humid);
+  // Serial.print("Temperature: ");
+  // Serial.print(temp);
+  // Serial.print("\t");
+  // Serial.print("Humidity: ");
+  // Serial.print(humid);
   // Serial.print("\t");
   // Serial.print("Pressure: ");
   // Serial.print(press);
-  Serial.println();
+  // Serial.println();
+
+  Serial.print(b1.getBatteryVoltage());
+  Serial.print("\t");
+  Serial.println(b2.getBatteryVoltage());
 
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
@@ -155,6 +171,9 @@ void checkSystemStatus() {
   } else if (temp < MIN_TEMP || MAX_TEMP < temp) {
     cl.setLEDState(ControlLED::TEMPERROR);
     cr.disablePower();
+  } else if (!b1.batteryWithinRange() || !b2.batteryWithinRange()) {
+    cl.setLEDState(ControlLED::POWERERROR);
+    cr.disablePower(); // Make this check the LED and if there's an error disable relay automatically
   } else {
     cl.setLEDState(ControlLED::OK);
     cr.enablePower();
