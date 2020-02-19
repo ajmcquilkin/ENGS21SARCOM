@@ -131,14 +131,6 @@ void loop() {
 
   // delay(1);
 
-  Serial.print(b1.getMinBatteryVoltage());
-  Serial.print("\t");
-  Serial.print(b1.getMaxBatteryVoltage());
-  Serial.print("\t");
-  Serial.print(b2.getMinBatteryVoltage());
-  Serial.print("\t");
-  Serial.println(b2.getMaxBatteryVoltage());
-
   checkSystemStatus();
   delay(100);
 }
@@ -149,20 +141,23 @@ void checkSystemStatus() {
   temp = clim.getCurrentTemperature();
   humid = clim.getCurrentHumidity();
   // press = clim.getCurrentPressure();
+  float b1Volt = b1.getBatteryVoltage();
+  float b2Volt = b2.getBatteryVoltage();
 
-  // Serial.print("Temperature: ");
-  // Serial.print(temp);
-  // Serial.print("\t");
-  // Serial.print("Humidity: ");
-  // Serial.print(humid);
-  // Serial.print("\t");
+  Serial.print("Temperature: ");
+  Serial.print(temp);
+  Serial.print("\t");
+  Serial.print("Humidity: ");
+  Serial.print(humid);
+  Serial.print("\t");
   // Serial.print("Pressure: ");
   // Serial.print(press);
-  // Serial.println();
-
-  Serial.print(b1.getBatteryVoltage());
+  Serial.print("Battery 1 Voltage: ");
+  Serial.print(b1Volt);
   Serial.print("\t");
-  Serial.println(b2.getBatteryVoltage());
+  Serial.print("Battery 2 Voltage: ");
+  Serial.print(b2Volt);
+  Serial.println();
 
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
