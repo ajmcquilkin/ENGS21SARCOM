@@ -152,25 +152,27 @@ void checkSystemStatus() {
   Serial.print("\t");
   // Serial.print("Pressure: ");
   // Serial.print(press);
-  Serial.print("Battery 1 Voltage: ");
+  Serial.print("Battery 1 (LiPo): ");
   Serial.print(b1Volt);
   Serial.print("\t");
-  Serial.print("Battery 2 Voltage: ");
+  Serial.print("Battery 2 (NiMH): ");
   Serial.print(b2Volt);
   Serial.println();
 
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
     cl.setLEDState(ControlLED::HUMIDERROR);
-    cr.disablePower();
   } else if (temp < MIN_TEMP || MAX_TEMP < temp) {
     cl.setLEDState(ControlLED::TEMPERROR);
-    cr.disablePower();
   } else if (!b1.batteryWithinRange() || !b2.batteryWithinRange()) {
     cl.setLEDState(ControlLED::POWERERROR);
-    cr.disablePower(); // Make this check the LED and if there's an error disable relay automatically
   } else {
     cl.setLEDState(ControlLED::OK);
+  }
+  
+  if (cl.getLedState() != ControlLED::OK) {
+    cr.disablePower();
+  } else {
     cr.enablePower();
   }
 }
