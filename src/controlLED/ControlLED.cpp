@@ -33,7 +33,13 @@ void ControlLED::setRGB(int r, int g, int b) {
   analogWrite(_bPin, _commonAnode ? _resolution - _bValue : _bValue);
 }
 
+ControlLED::LEDState ControlLED::getLedState() {
+  return _ledState;
+}
+
 void ControlLED::setLEDState(LEDState s) {
+  _ledState = s;
+
   switch (s) {
     // No loaded state
     case UNDEF:

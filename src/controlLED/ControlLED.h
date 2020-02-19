@@ -6,6 +6,8 @@ class ControlLED {
     void init();
 
     void setRGB(int r, int g, int b);
+    
+    LEDState getLedState();
     void setLEDState(LEDState s);
     // void fadeToRGB(int r, int g, int b, int msDuration);
 
@@ -20,4 +22,5 @@ class ControlLED {
 
     bool _commonAnode;
     int _resolution;
+    LEDState _ledState;
 };
