@@ -18,6 +18,7 @@
 #include <ControlRelay.h>
 #include <ControlLED.h>
 #include <BatteryController.h>
+#include <MotionDetection.h>
 
 #define MIN_TEMP -20
 #define MAX_TEMP 80
@@ -41,6 +42,8 @@ ControlLED cl = ControlLED(3, 5, 6);
 BatteryController b1 = BatteryController(A0, BatteryController::LiPo);
 BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
 
+MotionDetection imu = MotionDetection();
+
 void setup() {
   Serial.begin(9600);
 
@@ -55,6 +58,7 @@ void setup() {
   clim.init();
   cr.init();
   cl.init();
+  imu.init();
 
   cr.enablePower();
   // delay(2000);
@@ -157,6 +161,9 @@ void checkSystemStatus() {
   Serial.print("\t");
   Serial.print("Battery 2 (NiMH): ");
   Serial.print(b2Volt);
+  Serial.print("\t");
+  Serial.print("Z-Accel: ");
+  Serial.print(imu.getZAccel());
   Serial.println();
 
   // Note: This will determine the relative importance of each error
@@ -166,6 +173,8 @@ void checkSystemStatus() {
     cl.setLEDState(ControlLED::TEMPERROR);
   } else if (!b1.batteryWithinRange() || !b2.batteryWithinRange()) {
     cl.setLEDState(ControlLED::POWERERROR);
+  } else if (imu.hasFallen()) {
+    cl.setLEDState(ControlLED::WARNING);
   } else {
     cl.setLEDState(ControlLED::OK);
   }
