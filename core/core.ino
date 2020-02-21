@@ -18,15 +18,22 @@
 */
 
 #include <Arduino.h>
+#include "SoftwareSerial.h"
+
 #include <ClimateSensor.h>
 #include <ControlRelay.h>
 #include <ControlLED.h>
 #include <BatteryController.h>
 #include <MotionDetection.h>
 
+// TODO: Serve this to all SLAVE boards
 #define MIN_TEMP -20
 #define MAX_TEMP 80
 #define MAX_HUM 80
+
+#define ssEnable 8
+#define ssRX 9
+#define ssTX 10
 
 // Codes for each sensor, should maintain consistency with all boards in system
 // TODO: Make a method for transmitting this data to all SLAVE boards
@@ -50,28 +57,35 @@ ControlLED cl = ControlLED(3, 5, 6);
 
 BatteryController b1 = BatteryController(A0, BatteryController::LiPo);
 BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
-
 MotionDetection imu = MotionDetection();
+
+SoftwareSerial sensorStream = SoftwareSerial(ssRX, ssTX);
 
 void setup() {
   Serial.begin(9600);
+  sensorStream.begin(9600);
 
   clim.init();
   cr.init();
   cl.init();
   imu.init();
 
+  pinMode(ssEnable, OUTPUT); // MASTER/SLAVE selector
+  delay(10);
+  digitalWrite(ssEnable, LOW); // Slave needs enable LOW
+
   cr.enablePower();
   // delay(2000);
   // systemCycleTest();
-
-  Serial.println(clim.getCurrentTemperature());
-  Serial.println(clim.getCurrentHumidity());
 }
 
 void loop() {
-  checkSystemStatus();
-  delay(100);
+  while (sensorStream.available()) {
+    Serial.println(sensorStream.parseFloat());
+  }
+
+  // checkSystemStatus();
+  // delay(100);
 }
 
 void checkSystemStatus() {
@@ -83,23 +97,23 @@ void checkSystemStatus() {
   float b1Volt = b1.getBatteryVoltage();
   float b2Volt = b2.getBatteryVoltage();
 
-  Serial.print("Temperature: ");
-  Serial.print(temp);
-  Serial.print("\t");
-  Serial.print("Humidity: ");
-  Serial.print(humid);
-  Serial.print("\t");
+  // Serial.print("Temperature: ");
+  // Serial.print(temp);
+  // Serial.print("\t");
+  // Serial.print("Humidity: ");
+  // Serial.print(humid);
+  // Serial.print("\t");
   // Serial.print("Pressure: ");
   // Serial.print(press);
-  Serial.print("Battery 1 (LiPo): ");
-  Serial.print(b1Volt);
-  Serial.print("\t");
-  Serial.print("Battery 2 (NiMH): ");
-  Serial.print(b2Volt);
-  Serial.print("\t");
-  Serial.print("Z-Accel: ");
-  Serial.print(imu.getZAccel());
-  Serial.println();
+  // Serial.print("Battery 1 (LiPo): ");
+  // Serial.print(b1Volt);
+  // Serial.print("\t");
+  // Serial.print("Battery 2 (NiMH): ");
+  // Serial.print(b2Volt);
+  // Serial.print("\t");
+  // Serial.print("Z-Accel: ");
+  // Serial.print(imu.getZAccel());
+  // Serial.println();
 
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
