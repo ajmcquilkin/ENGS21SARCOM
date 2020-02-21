@@ -1,16 +1,20 @@
 /*
-   Creating an engine to process input from a number of sources and determine if the repeater is still safe to operate
+  Creating an engine to process input from a number of sources and determine if the repeater is still safe to operate
 
-   Sensors
-   - Top:
-   - - Wind
-   - - Temperature
-   - - Humidity
-   - - Accelerometer
-   - Bottom:
-   - - Temperature
-   - - Humidity
-   - - Battery power
+  Sensors
+  - Top:
+  - - Wind
+  - - Temperature
+  - - Humidity
+  - - Accelerometer
+  - Bottom:
+  - - Temperature
+  - - Humidity
+  - - Battery power
+
+  For transmitting sensor data from top of mast:
+  - "<" + SENSOR_CODE_1 + ":" SENSOR_DATA_1 + "," + ... (repeat same format) ... + ">"
+  - On initialization of RS485 communication, MASTER will transmit SensorCode enum to slave
 */
 
 #include <Arduino.h>
@@ -24,16 +28,21 @@
 #define MAX_TEMP 80
 #define MAX_HUM 80
 
-#define VOLTAGE_ONE_PIN A0
-#define VOLTAGE_TWO_PIN A1
-#define VOLTAGE_THREE_PIN A2
+// Codes for each sensor, should maintain consistency with all boards in system
+// TODO: Make a method for transmitting this data to all SLAVE boards
+enum SensorCode {
+  ACCEL_SENSOR_X = 0b00000000,
+  ACCEL_SENSOR_Y = 0b00000001,
+  ACCEL_SENSOR_Z = 0b00000010,
 
-#define LED_PIN_R 3
-#define LED_PIN_G 5
-#define LED_PIN_B 6
+  GYRO_SENSOR_X = 0b00000011,
+  GYRO_SENSOR_Y = 0b00000100,
+  GYRO_SENSOR_Z = 0b00000101,
 
-#define VOLTAGE_THRESHOLD 2
-int voltageOne, voltageTwo, voltageThree, pastVoltageOne, pastVoltageTwo, pastVoltageThree;
+  HUMIDITY_SENSOR = 0b00000110,
+  PRESSURE_SENSOR = 0b00000111,
+  TEMPERATURE_SENSOR = 0b00001000,
+};
 
 ClimateSensor clim = ClimateSensor(4, true);
 ControlRelay cr = ControlRelay(7);
@@ -47,14 +56,6 @@ MotionDetection imu = MotionDetection();
 void setup() {
   Serial.begin(9600);
 
-  pinMode(VOLTAGE_ONE_PIN, INPUT);
-  pinMode(VOLTAGE_TWO_PIN, INPUT);
-  pinMode(VOLTAGE_THREE_PIN, INPUT);
-
-  pinMode(LED_PIN_R, OUTPUT);
-  pinMode(LED_PIN_G, OUTPUT);
-  pinMode(LED_PIN_B, OUTPUT);
-
   clim.init();
   cr.init();
   cl.init();
@@ -62,79 +63,13 @@ void setup() {
 
   cr.enablePower();
   // delay(2000);
-
-  // cr.disablePower();
-  // delay(2000);
-  
-  // cr.enablePower();
-
-  // cl.setLEDState(ControlLED::UNDEF);
-  // Serial.println("UNDEF");
-  // delay(3000);
-
-  // cl.setLEDState(ControlLED::SYSTEMERROR);
-  // Serial.println("SYSTEMERROR");
-  // delay(3000);
-
-  // cl.setLEDState(ControlLED::TEMPERROR);
-  // Serial.println("TEMPERROR");
-  // delay(3000);
-
-  // cl.setLEDState(ControlLED::HUMIDERROR);
-  // Serial.println("HUMIDERROR");
-  // delay(3000);
-
-  // cl.setLEDState(ControlLED::POWERERROR);
-  // Serial.println("POWERERROR");
-  // delay(3000);
-
-  // cl.setLEDState(ControlLED::WARNING);
-  // Serial.println("WARNING");
-  // delay(3000);
-
-  // cl.setLEDState(ControlLED::OK);
-  // Serial.println("OK");
-  // delay(3000);
+  // systemCycleTest();
 
   Serial.println(clim.getCurrentTemperature());
   Serial.println(clim.getCurrentHumidity());
-
-  pastVoltageOne = analogRead(VOLTAGE_ONE_PIN);
-  pastVoltageTwo = analogRead(VOLTAGE_TWO_PIN);
-  pastVoltageThree = analogRead(VOLTAGE_THREE_PIN);
 }
 
 void loop() {
-  // voltageOne = analogRead(VOLTAGE_ONE_PIN);
-  // voltageTwo = analogRead(VOLTAGE_TWO_PIN);
-  // voltageThree = analogRead(VOLTAGE_THREE_PIN);
-
-  // analogWrite(LED_PIN_R, map(voltageOne, 1023, 0, 0, 255));
-  // analogWrite(LED_PIN_G, map(voltageTwo, 1023, 0, 0, 255));
-  // analogWrite(LED_PIN_B, map(voltageThree, 1023, 0, 0, 255));
-
-  // bool voltageOneDisplay = abs(voltageOne - pastVoltageOne) > VOLTAGE_THRESHOLD;
-  // bool voltageTwoDisplay = abs(voltageTwo - pastVoltageTwo) > VOLTAGE_THRESHOLD;
-  // bool voltageThreeDisplay = abs(voltageThree - pastVoltageThree) > VOLTAGE_THRESHOLD;
-
-  // if (voltageOneDisplay || voltageTwoDisplay || voltageThreeDisplay) {
-  //   Serial.print("Voltage One: ");
-  //   Serial.print(voltageOne);
-  //   Serial.print("\t");
-  //   Serial.print("Voltage Two: ");
-  //   Serial.print(voltageTwo);
-  //   Serial.print("\t");
-  //   Serial.print("Voltage Three: ");
-  //   Serial.print(voltageThree);
-  //   Serial.println();
-  // }
-
-  // pastVoltageOne = voltageOne;
-  // pastVoltageTwo = voltageTwo;
-  // pastVoltageThree = voltageThree;
-
-  // delay(1);
-
   checkSystemStatus();
   delay(100);
 }
@@ -184,4 +119,40 @@ void checkSystemStatus() {
   } else {
     cr.enablePower();
   }
+}
+
+void systemCycleTest() {
+  cr.disablePower();
+  delay(2000);
+  
+  cr.enablePower();
+  delay(2000);
+
+  cl.setLEDState(ControlLED::UNDEF);
+  Serial.println("UNDEF");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::SYSTEMERROR);
+  Serial.println("SYSTEMERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::TEMPERROR);
+  Serial.println("TEMPERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::HUMIDERROR);
+  Serial.println("HUMIDERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::POWERERROR);
+  Serial.println("POWERERROR");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::WARNING);
+  Serial.println("WARNING");
+  delay(3000);
+
+  cl.setLEDState(ControlLED::OK);
+  Serial.println("OK");
+  delay(3000);
 }
