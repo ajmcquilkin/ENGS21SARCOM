@@ -88,6 +88,7 @@ void loop() {
   // delay(100);
 }
 
+// TODO: Make these functions into exteral libraries
 void checkSystemStatus() {
   int temp, humid, press;
 
