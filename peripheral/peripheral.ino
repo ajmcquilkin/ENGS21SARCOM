@@ -56,7 +56,7 @@ void setup() {
 
   pinMode(ssEnable, OUTPUT); // MASTER/SLAVE selector
   delay(10);
-  digitalWrite(ssEnable, LOW); // Slave needs enable LOW
+  digitalWrite(ssEnable, HIGH); // Master needs enable HIGH
 }
 
 void loop() {
@@ -82,8 +82,28 @@ void loop() {
   Serial.write('>');
   Serial.println();
 
+  sensorDownlink.write('<');
+  // Currently 6 sensors
+  sensorDownlink.print(0b00000110);
+  sensorDownlink.write(':');
+  sensorDownlink.print((int)clim.getCurrentHumidity());
+  sensorDownlink.write(',');
+
+  sensorDownlink.print(0b00001000);
+  sensorDownlink.write(':');
+  sensorDownlink.print((int)clim.getCurrentTemperature());
+  sensorDownlink.write(',');
+  
+  sensorDownlink.print(0b00000010);
+  sensorDownlink.write(':');
+  sensorDownlink.print((int)imu.getZAccel());
+  // sensorDownlink.write(',');
+  
+  sensorDownlink.write('>');
+  sensorDownlink.println();
+
   // checkSystemStatus();
-  delay(200);
+  delay(2000);
 }
 
 // TODO: Make these functions into exteral libraries
