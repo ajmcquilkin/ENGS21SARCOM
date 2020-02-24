@@ -35,6 +35,9 @@
 #define ssRX 9
 #define ssTX 10
 
+unsigned long previousMillis = 0;
+const long pollingInterval = 1000;
+
 // Codes for each sensor, should maintain consistency with all boards in system
 // TODO: Make a method for transmitting this data to all SLAVE boards
 enum SensorCode {
@@ -80,12 +83,17 @@ void setup() {
 }
 
 void loop() {
-  while (sensorStream.available()) {
-    Serial.println(sensorStream.parseFloat());
+  unsigned long currentMillis = millis();
+
+  // Non-blocking delay
+  if (currentMillis - previousMillis > pollingInterval) {
+    previousMillis = currentMillis;
+    checkSystemStatus();
   }
 
-  // checkSystemStatus();
-  // delay(100);
+  while (sensorStream.available()) {
+    Serial.print((char)sensorStream.read());
+  }
 }
 
 // TODO: Make these functions into exteral libraries
@@ -98,23 +106,23 @@ void checkSystemStatus() {
   float b1Volt = b1.getBatteryVoltage();
   float b2Volt = b2.getBatteryVoltage();
 
-  // Serial.print("Temperature: ");
-  // Serial.print(temp);
-  // Serial.print("\t");
-  // Serial.print("Humidity: ");
-  // Serial.print(humid);
-  // Serial.print("\t");
+  Serial.print("Temperature: ");
+  Serial.print(temp);
+  Serial.print("\t");
+  Serial.print("Humidity: ");
+  Serial.print(humid);
+  Serial.print("\t");
   // Serial.print("Pressure: ");
   // Serial.print(press);
-  // Serial.print("Battery 1 (LiPo): ");
-  // Serial.print(b1Volt);
-  // Serial.print("\t");
-  // Serial.print("Battery 2 (NiMH): ");
-  // Serial.print(b2Volt);
-  // Serial.print("\t");
-  // Serial.print("Z-Accel: ");
-  // Serial.print(imu.getZAccel());
-  // Serial.println();
+  Serial.print("Battery 1 (LiPo): ");
+  Serial.print(b1Volt);
+  Serial.print("\t");
+  Serial.print("Battery 2 (NiMH): ");
+  Serial.print(b2Volt);
+  Serial.print("\t");
+  Serial.print("Z-Accel: ");
+  Serial.print(imu.getZAccel());
+  Serial.println();
 
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
