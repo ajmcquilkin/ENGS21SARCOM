@@ -9,12 +9,15 @@ class MotionDetection {
     }
       
     void init();
-    bool hasFallen();
 
+    bool hasFallen();
+    void setMinAccelThreshold();
+    
     float getZAccel();
 
   private:
     float _xAccel, _yAccel, _zAccel, _xGyro, _yGyro, _zGyro;
+    float _zAccelMinThreshold = 8.00;
     void _readSensor();
 
     Adafruit_ADXL343 _imu;

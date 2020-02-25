@@ -10,9 +10,13 @@ void MotionDetection::init() {
 bool MotionDetection::hasFallen(){
   _readSensor();
 
-  if (_zAccel < 8.00) {
+  if (_zAccel < _zAccelMinThreshold) {
     return true;
   } return false;
+}
+
+void MotionDetection::setMinAccelThreshold(float minAccelThreshold) {
+  _zAccelMinThreshold = minAccelThreshold;
 }
 
 float MotionDetection::getZAccel() {
