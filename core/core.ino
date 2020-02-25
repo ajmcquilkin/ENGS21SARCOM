@@ -100,6 +100,7 @@ void loop() {
     /** Run local sensor analysis here */
   }
 
+  // TODO: Clean this up into functions
   while (sensorStream.available()) {
     // Get char value from stream
     char sensorStreamTempRead = (char)sensorStream.read();
@@ -159,13 +160,38 @@ void loop() {
 
         // Print all sensor ids and values
         for (int i = 0; i < sensorIndex; i++) {
-          Serial.print("id: ");
+          switch(sensorDataParsed[i][0]) {
+            case SensorCode::ACCEL_SENSOR_Z:
+            Serial.print("Z-Acceleration: ");
+            break;
+            
+            case SensorCode::HUMIDITY_SENSOR:
+            Serial.print("Humidity: ");
+            break;
+            
+            case SensorCode::TEMPERATURE_SENSOR:
+            Serial.print("Temperature: ");
+            break;
+
+            case SensorCode::PRESSURE_SENSOR:
+            Serial.print("Pressure: ");
+            break;
+
+            default:
+            Serial.print("Other: ");
+            break;
+          }
+
+          // Serial.print("id: ");
           Serial.print(sensorDataParsed[i][0]);
           Serial.print(", value: ");
           Serial.print(sensorDataParsed[i][1]);
           Serial.println();
         }
         Serial.println("****************");
+
+        
+
         sensorBufferIndex = 0; // Reset incoming Serial buffer index
 
       } else if (sensorBufferIndex >= SENSOR_BUFFER_SIZE - 1) { // Buffer overflow check
