@@ -12,25 +12,31 @@
 #define ssRX 9
 #define ssTX 10
 
-SoftwareSerial sensorDownlink = SoftwareSerial(ssRX, ssTX);
+unsigned long nonVitalPreviousMillis = 0;
+const long nonVitalPollingInterval = 1000;
 
-// TODO: Load this from MASTER node
-// enum SensorCode {
-//   ACCEL_SENSOR_X = 0b00000000,
-//   ACCEL_SENSOR_Y = 0b00000001,
-//   ACCEL_SENSOR_Z = 0b00000010,
+unsigned long vitalPreviousMillis = 0;
+const long vitalPollingInterval = 20;
 
-//   GYRO_SENSOR_X = 0b00000011,
-//   GYRO_SENSOR_Y = 0b00000100,
-//   GYRO_SENSOR_Z = 0b00000101,
+// TODO: Load this from MASTER microcontroller
+enum SensorCode {
+  ACCEL_SENSOR_X = 0b00000000,
+  ACCEL_SENSOR_Y = 0b00000001,
+  ACCEL_SENSOR_Z = 0b00000010,
 
-//   HUMIDITY_SENSOR = 0b00000110,
-//   PRESSURE_SENSOR = 0b00000111,
-//   TEMPERATURE_SENSOR = 0b00001000,
-// };
+  GYRO_SENSOR_X = 0b00000011,
+  GYRO_SENSOR_Y = 0b00000100,
+  GYRO_SENSOR_Z = 0b00000101,
+
+  HUMIDITY_SENSOR = 0b00000110,
+  PRESSURE_SENSOR = 0b00000111,
+  TEMPERATURE_SENSOR = 0b00001000,
+};
 
 ClimateSensor clim = ClimateSensor(4, true);
 MotionDetection imu = MotionDetection();
+
+SoftwareSerial sensorDownlink = SoftwareSerial(ssRX, ssTX);
 
 void setup() {
   Serial.begin(9600);
@@ -48,50 +54,67 @@ void setup() {
  * TODO: Make the loop differentiate b/w urgent and non-urgent sensor data and poll sensors and transmit data accordingly
 */
 void loop() {
-  int numSensors = 6;
+  unsigned long currentMillis = millis();
 
-  Serial.write('<');
-  // Currently 6 sensors
-  Serial.print(0b00000110);
-  Serial.write(':');
-  Serial.print((int)clim.getCurrentHumidity());
-  Serial.write(',');
+  // Non-blocking delay for vital sensors
+  if (currentMillis - nonVitalPreviousMillis > vitalPollingInterval && imu.hasFallen()) {
+    Serial.println("Vital - has fallen");
+    vitalPreviousMillis = currentMillis;
+    
+    Serial.write('<');
+    Serial.print(SensorCode::ACCEL_SENSOR_Z);
+    Serial.write(':');
+    Serial.print((int)imu.getZAccel());
+    Serial.write('>');
+  }
 
-  Serial.print(0b00001000);
-  Serial.write(':');
-  Serial.print((int)clim.getCurrentTemperature());
-  Serial.write(',');
-  
-  Serial.print(0b00000010);
-  Serial.write(':');
-  Serial.print((int)imu.getZAccel());
-  // Serial.write(',');
-  
-  Serial.write('>');
-  Serial.println();
+  // Non-blocking delay for non-vital sensors
+  if (currentMillis - nonVitalPreviousMillis > nonVitalPollingInterval) {
+    Serial.println("Nonvital - polling");
+    nonVitalPreviousMillis = currentMillis;
 
-  sensorDownlink.write('<');
-  // Currently 6 sensors
-  sensorDownlink.print(0b00000110);
-  sensorDownlink.write(':');
-  sensorDownlink.print((int)clim.getCurrentHumidity());
-  sensorDownlink.write(',');
+    Serial.write('<');
 
-  sensorDownlink.print(0b00001000);
-  sensorDownlink.write(':');
-  sensorDownlink.print((int)clim.getCurrentTemperature());
-  sensorDownlink.write(',');
-  
-  sensorDownlink.print(0b00000010);
-  sensorDownlink.write(':');
-  sensorDownlink.print((int)imu.getZAccel());
-  // sensorDownlink.write(',');
-  
-  sensorDownlink.write('>');
-  sensorDownlink.println();
+    Serial.print(SensorCode::HUMIDITY_SENSOR);
+    Serial.write(':');
+    Serial.print((int)clim.getCurrentHumidity());
+    Serial.write(',');
+
+    Serial.print(SensorCode::TEMPERATURE_SENSOR);
+    Serial.write(':');
+    Serial.print((int)clim.getCurrentTemperature());
+    Serial.write(',');
+    
+    Serial.print(SensorCode::ACCEL_SENSOR_Z);
+    Serial.write(':');
+    Serial.print((int)imu.getZAccel());
+    // Serial.write(',');
+    
+    Serial.write('>');
+    Serial.println();
+
+    sensorDownlink.write('<');
+    // Currently 6 sensors
+    sensorDownlink.print(SensorCode::HUMIDITY_SENSOR);
+    sensorDownlink.write(':');
+    sensorDownlink.print((int)clim.getCurrentHumidity());
+    sensorDownlink.write(',');
+
+    sensorDownlink.print(SensorCode::TEMPERATURE_SENSOR);
+    sensorDownlink.write(':');
+    sensorDownlink.print((int)clim.getCurrentTemperature());
+    sensorDownlink.write(',');
+    
+    sensorDownlink.print(SensorCode::ACCEL_SENSOR_Z);
+    sensorDownlink.write(':');
+    sensorDownlink.print((int)imu.getZAccel());
+    // sensorDownlink.write(',');
+    
+    sensorDownlink.write('>');
+    sensorDownlink.println();
+  }
 
   // checkSystemStatus();
-  delay(2000);
 }
 
 // TODO: Make these functions into exteral libraries

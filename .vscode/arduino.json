@@ -1,6 +1,6 @@
 {
-    "sketch": "core\\core.ino",
+    "sketch": "peripheral\\peripheral.ino",
     "output": "..\\build",
-    "port": "COM5",
+    "port": "COM4",
     "board": "arduino:avr:uno"
 }
