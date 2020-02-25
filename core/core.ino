@@ -113,24 +113,77 @@ void loop() {
 
         /** Process data here */
 
-        // https://forum.arduino.cc/index.php?topic=450585.0
+        /**
+         * NOTE: Parse each level in separate, non-nested while loops to maintain strtok() consistency
+        */
 
-        char *splitSensorStream[10]; // Array of strings
-        char * splitSensorStreamTemp; // Temp string being processes
-        int index = 0;
+        // ------------- First-level string parsing ------------- //
+        // Inspiration: https://forum.arduino.cc/index.php?topic=450585.0
 
-        splitSensorStreamTemp = strtok(sensorBuffer, "<,>");
+        // TODO: Make this more coherent
+        const int firstLevelSplits = 10;
+        const int secondLevelSplits = 2;
 
-        // Iterate through all first-level splits of incoming char
-        while (splitSensorStreamTemp != NULL) {
-          splitSensorStream[index] = splitSensorStreamTemp;
-          index++;
-          splitSensorStreamTemp = strtok(NULL, "<,>");
+        char *sensorParsedStrings[firstLevelSplits]; // TODO: Document this variable
+        char *sensorParsedStringsTemp; // TODO: Document this variable
+        int sensorIndex = 0; // TODO: Document this variable
+
+        // TODO: Rename this variable
+        sensorParsedStringsTemp = strtok(sensorBuffer, "<,>");
+
+        // Iterate through all first-level splits of incoming char array
+        while (sensorParsedStringsTemp != NULL) {
+          sensorParsedStrings[sensorIndex] = sensorParsedStringsTemp;
+
+          // Set up for next iteration
+          sensorIndex++;
+          sensorParsedStringsTemp = strtok(NULL, "<,>");
         }
 
-        for (int i = 0; i < index; i++) {
-          Serial.println(splitSensorStream[i]);
+        // ------------- Second-level string parsing ------------- //
+        // Parse through each first-level string and read data into 2D array of ints
+
+        Serial.print("Sensor index: ");
+        Serial.println(sensorIndex);
+
+        int sensorDataParser[firstLevelSplits][secondLevelSplits]; // Saves the id-data pair for each sensor
+        char *sensorDataParserTemp; // String iterator for parsing each sensor substring
+        int subSensorIndex = 0; // Index for sensorDataParser
+
+        // Iterate through all first-level and corresponding second-level datasets
+        for (int firstLevelIndex = 0; firstLevelIndex < sensorIndex; firstLevelIndex++) {
+          
+          // TODO: Rename this variable
+          sensorDataParserTemp = strtok(sensorParsedStrings[firstLevelIndex], ":");
+          subSensorIndex = 0;
+
+          while (sensorDataParserTemp != NULL) {
+            // Serial.println(sensorDataParserTemp);
+            // Serial.println((int)(*sensorDataParserTemp) - 48);
+            // Serial.println((int)(*sensorDataParserTemp) - '0');
+            // Serial.println("--");
+            sensorDataParser[firstLevelIndex][subSensorIndex] = (int)(*sensorDataParserTemp) - '0'; // Dereference, convert to int
+
+            // Serial.println(sensorDataParser[firstLevelIndex][subSensorIndex]);
+            // Serial.println("----");
+
+            subSensorIndex++;
+            sensorDataParserTemp = strtok(NULL, ":");
+          }
         }
+
+        Serial.println("Begin array iteration");
+        for (int i = 0; i < sensorIndex; i++) {
+          for (int j = 0; j < secondLevelSplits; j++) {
+            // Serial.print(i);
+            // Serial.print("\t");
+            // Serial.print(j);
+            // Serial.print("\t");
+            Serial.println(sensorDataParser[i][j]);
+          }
+          Serial.println("----");
+        }
+        Serial.println("**************");
         
         // Serial.println(sensorBuffer);
 
