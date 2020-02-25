@@ -17,6 +17,8 @@
   - On initialization of RS485 communication, MASTER will transmit SensorCode enum to slave
 */
 
+#include <string.h>
+
 #include <Arduino.h>
 #include "SoftwareSerial.h"
 
@@ -108,9 +110,29 @@ void loop() {
 
       // If final character received, process then reset
       if (sensorBuffer[sensorBufferIndex] == '>') {
+
         /** Process data here */
+
+        // https://forum.arduino.cc/index.php?topic=450585.0
+
+        char *splitSensorStream[10]; // Array of strings
+        char * splitSensorStreamTemp; // Temp string being processes
+        int index = 0;
+
+        splitSensorStreamTemp = strtok(sensorBuffer, "<,>");
+
+        // Iterate through all first-level splits of incoming char
+        while (splitSensorStreamTemp != NULL) {
+          splitSensorStream[index] = splitSensorStreamTemp;
+          index++;
+          splitSensorStreamTemp = strtok(NULL, "<,>");
+        }
+
+        for (int i = 0; i < index; i++) {
+          Serial.println(splitSensorStream[i]);
+        }
         
-        Serial.println(sensorBuffer);
+        // Serial.println(sensorBuffer);
 
         sensorBufferIndex = 0; // Reset buffer index
       } else if (sensorBufferIndex >= SENSOR_BUFFER_SIZE - 1) { // Buffer overflow check
