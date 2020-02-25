@@ -111,8 +111,6 @@ void loop() {
       // If final character received, process then reset
       if (sensorBuffer[sensorBufferIndex] == '>') {
 
-        /** Process data here */
-
         /**
          * NOTE: Parse each level in separate, non-nested while loops to maintain strtok() consistency
         */
@@ -120,72 +118,56 @@ void loop() {
         // ------------- First-level string parsing ------------- //
         // Inspiration: https://forum.arduino.cc/index.php?topic=450585.0
 
-        // TODO: Make this more coherent
-        const int firstLevelSplits = 10;
-        const int secondLevelSplits = 2;
+        const int numFirstLevelSplits = 10;
+        const int numSecondLevelSplits = 2;
 
-        char *sensorParsedStrings[firstLevelSplits]; // TODO: Document this variable
-        char *sensorParsedStringsTemp; // TODO: Document this variable
-        int sensorIndex = 0; // TODO: Document this variable
+        char *sensorParsedStrings[numFirstLevelSplits]; // Holds all split strings coming in from Serial
+        char *sensorParsedStringsHolder; // Char array holder used when parsing incoming data with strtok()
+        int sensorIndex = 0; // Holds the maximum filled index in sensorParsedStrings
 
-        // TODO: Rename this variable
-        sensorParsedStringsTemp = strtok(sensorBuffer, "<,>");
+        sensorParsedStringsHolder = strtok(sensorBuffer, "<,>");
 
         // Iterate through all first-level splits of incoming char array
-        while (sensorParsedStringsTemp != NULL) {
-          sensorParsedStrings[sensorIndex] = sensorParsedStringsTemp;
+        while (sensorParsedStringsHolder != NULL) {
+          sensorParsedStrings[sensorIndex] = sensorParsedStringsHolder;
 
           // Set up for next iteration
           sensorIndex++;
-          sensorParsedStringsTemp = strtok(NULL, "<,>");
+          sensorParsedStringsHolder = strtok(NULL, "<,>");
         }
 
         // ------------- Second-level string parsing ------------- //
         // Parse through each first-level string and read data into 2D array of ints
 
-        Serial.print("Sensor index: ");
-        Serial.println(sensorIndex);
-
-        int sensorDataParser[firstLevelSplits][secondLevelSplits]; // Saves the id-data pair for each sensor
-        char *sensorDataParserTemp; // String iterator for parsing each sensor substring
+        int sensorDataParsed[numFirstLevelSplits][numSecondLevelSplits]; // Saves the id-data pair for each sensor
+        char *sensorDataParsedHolder; // String iterator for parsing each sensor substring
         int subSensorIndex = 0; // Index for sensorDataParser
 
         // Iterate through all first-level and corresponding second-level datasets
         for (int firstLevelIndex = 0; firstLevelIndex < sensorIndex; firstLevelIndex++) {
           
-          // TODO: Rename this variable
-          sensorDataParserTemp = strtok(sensorParsedStrings[firstLevelIndex], ":");
+          sensorDataParsedHolder = strtok(sensorParsedStrings[firstLevelIndex], ":");
           subSensorIndex = 0;
 
-          while (sensorDataParserTemp != NULL) {
-            // Serial.println(sensorDataParserTemp);
-            // Serial.println((int)(*sensorDataParserTemp) - 48);
-            // Serial.println((int)(*sensorDataParserTemp) - '0');
-            // Serial.println("--");
-            sensorDataParser[firstLevelIndex][subSensorIndex] = atoi(sensorDataParserTemp); // Dereference, convert to int
-
-            // Serial.println(sensorDataParser[firstLevelIndex][subSensorIndex]);
-            // Serial.println("----");
+          while (sensorDataParsedHolder != NULL) {
+            sensorDataParsed[firstLevelIndex][subSensorIndex] = atoi(sensorDataParsedHolder); // Convert to int, save
 
             subSensorIndex++;
-            sensorDataParserTemp = strtok(NULL, ":");
+            sensorDataParsedHolder = strtok(NULL, ":");
           }
         }
 
-        Serial.println("Begin array iteration");
+        // Print all sensor ids and values
         for (int i = 0; i < sensorIndex; i++) {
           Serial.print("id: ");
-          Serial.print(sensorDataParser[i][0]);
+          Serial.print(sensorDataParsed[i][0]);
           Serial.print(", value: ");
-          Serial.print(sensorDataParser[i][1]);
+          Serial.print(sensorDataParsed[i][1]);
           Serial.println();
-          Serial.println("----");
         }
-        Serial.println("**************");
-        
-        // Serial.println(sensorBuffer);
+        Serial.println("****************");
+        sensorBufferIndex = 0; // Reset incoming Serial buffer index
 
-        sensorBufferIndex = 0; // Reset buffer index
       } else if (sensorBufferIndex >= SENSOR_BUFFER_SIZE - 1) { // Buffer overflow check
         sensorBufferIndex = 0;
         Serial.println("Sensor Buffer Overflow");
