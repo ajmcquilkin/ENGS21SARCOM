@@ -35,8 +35,13 @@
 #define ssRX 9
 #define ssTX 10
 
+#define SENSOR_BUFFER_SIZE 128
+
 unsigned long previousMillis = 0;
 const long pollingInterval = 1000;
+
+char sensorBuffer[SENSOR_BUFFER_SIZE];
+int sensorBufferIndex = 0;
 
 // Codes for each sensor, should maintain consistency with all boards in system
 // TODO: Make a method for transmitting this data to all SLAVE boards
@@ -88,11 +93,34 @@ void loop() {
   // Non-blocking delay
   if (currentMillis - previousMillis > pollingInterval) {
     previousMillis = currentMillis;
-    checkSystemStatus();
+    // checkSystemStatus();
+
+    /** Run local sensor analysis here */
   }
 
   while (sensorStream.available()) {
-    Serial.print((char)sensorStream.read());
+    // Get char value from stream
+    char sensorStreamTempRead = (char)sensorStream.read();
+
+    // Remove newlines and carrage returns from sensorStream
+    if (sensorStreamTempRead != '\n' && sensorStreamTempRead != '\r') {
+      sensorBuffer[sensorBufferIndex] = sensorStreamTempRead;
+
+      // If final character received, process then reset
+      if (sensorBuffer[sensorBufferIndex] == '>') {
+        /** Process data here */
+        
+        Serial.println(sensorBuffer);
+
+        sensorBufferIndex = 0; // Reset buffer index
+      } else if (sensorBufferIndex >= SENSOR_BUFFER_SIZE - 1) { // Buffer overflow check
+        sensorBufferIndex = 0;
+        Serial.println("Sensor Buffer Overflow");
+        Serial.println(sensorBuffer);
+      } else {
+        sensorBufferIndex++;
+      }
+    }
   }
 }
 

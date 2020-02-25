@@ -4,7 +4,6 @@
 #include <ClimateSensor.h>
 #include <MotionDetection.h>
 
-// TODO: Serve this to all SLAVE boards
 #define MIN_TEMP -20
 #define MAX_TEMP 80
 #define MAX_HUM 80
@@ -30,24 +29,10 @@ SoftwareSerial sensorDownlink = SoftwareSerial(ssRX, ssTX);
 //   TEMPERATURE_SENSOR = 0b00001000,
 // };
 
-// std::map<std::string, int> SensorCodes;
-
 ClimateSensor clim = ClimateSensor(4, true);
 MotionDetection imu = MotionDetection();
 
 void setup() {
-  // SensorCodes['ACCEL_SENSOR_X'] = 0;
-  // SensorCodes['ACCEL_SENSOR_Y'] = 1;
-  // SensorCodes['ACCEL_SENSOR_Z'] = 2;
-
-  // SensorCodes['GYRO_SENSOR_X'] = 3;
-  // SensorCodes['GYRO_SENSOR_Y'] = 4;
-  // SensorCodes['GYRO_SENSOR_Z'] = 5;
-
-  // SensorCodes['HUMIDITY_SENSOR'] = 6;
-  // SensorCodes['PRESSURE_SENSORS'] = 7;
-  // SensorCodes['TEMPERATURE_SENSOR'] = 8;
-
   Serial.begin(9600);
   sensorDownlink.begin(9600);
 
@@ -59,6 +44,9 @@ void setup() {
   digitalWrite(ssEnable, HIGH); // Master needs enable HIGH
 }
 
+/**
+ * TODO: Make the loop differentiate b/w urgent and non-urgent sensor data and poll sensors and transmit data accordingly
+*/
 void loop() {
   int numSensors = 6;
 
