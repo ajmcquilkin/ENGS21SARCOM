@@ -161,8 +161,28 @@ void loop() {
         // Print all sensor ids and values
         for (int i = 0; i < sensorIndex; i++) {
           switch(sensorDataParsed[i][0]) {
+            case SensorCode::ACCEL_SENSOR_X:
+            Serial.print("X-Acceleration: ");
+            break;
+
+            case SensorCode::ACCEL_SENSOR_Y:
+            Serial.print("Y-Acceleration: ");
+            break;
+
             case SensorCode::ACCEL_SENSOR_Z:
             Serial.print("Z-Acceleration: ");
+            break;
+
+            case SensorCode::GYRO_SENSOR_X:
+            Serial.print("X-Gyroscope: ");
+            break;
+
+            case SensorCode::GYRO_SENSOR_Y:
+            Serial.print("Y-Gyroscope: ");
+            break;
+
+            case SensorCode::GYRO_SENSOR_Z:
+            Serial.print("Z-Gyroscope: ");
             break;
             
             case SensorCode::HUMIDITY_SENSOR:
