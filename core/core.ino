@@ -162,7 +162,7 @@ void loop() {
             // Serial.println((int)(*sensorDataParserTemp) - 48);
             // Serial.println((int)(*sensorDataParserTemp) - '0');
             // Serial.println("--");
-            sensorDataParser[firstLevelIndex][subSensorIndex] = (int)(*sensorDataParserTemp) - '0'; // Dereference, convert to int
+            sensorDataParser[firstLevelIndex][subSensorIndex] = atoi(sensorDataParserTemp); // Dereference, convert to int
 
             // Serial.println(sensorDataParser[firstLevelIndex][subSensorIndex]);
             // Serial.println("----");
@@ -174,13 +174,11 @@ void loop() {
 
         Serial.println("Begin array iteration");
         for (int i = 0; i < sensorIndex; i++) {
-          for (int j = 0; j < secondLevelSplits; j++) {
-            // Serial.print(i);
-            // Serial.print("\t");
-            // Serial.print(j);
-            // Serial.print("\t");
-            Serial.println(sensorDataParser[i][j]);
-          }
+          Serial.print("id: ");
+          Serial.print(sensorDataParser[i][0]);
+          Serial.print(", value: ");
+          Serial.print(sensorDataParser[i][1]);
+          Serial.println();
           Serial.println("----");
         }
         Serial.println("**************");
