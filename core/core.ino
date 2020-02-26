@@ -32,6 +32,7 @@
 #define MIN_TEMP -20
 #define MAX_TEMP 80
 #define MAX_HUM 80
+#define MIN_Z_ACCEL_VALUE 8
 
 #define ssEnable 8
 #define ssRX 9
@@ -84,6 +85,7 @@ void setup() {
   delay(10);
   digitalWrite(ssEnable, LOW); // Slave needs enable LOW
 
+  cl.setLEDState(ControlLED::OK);
   cr.enablePower();
   // delay(2000);
   // systemCycleTest();
@@ -98,6 +100,7 @@ void loop() {
     // checkSystemStatus();
 
     /** Run local sensor analysis here */
+    // verifyLocalReadings();
   }
 
   // TODO: Clean this up into functions
@@ -159,47 +162,77 @@ void loop() {
         }
 
         // Print all sensor ids and values
+        bool foundError = false;
+
         for (int i = 0; i < sensorIndex; i++) {
           switch(sensorDataParsed[i][0]) {
             case SensorCode::ACCEL_SENSOR_X:
+            // Doesn't currently check this value
             Serial.print("X-Acceleration: ");
             break;
 
             case SensorCode::ACCEL_SENSOR_Y:
+            // Doesn't currently check this value
             Serial.print("Y-Acceleration: ");
             break;
 
             case SensorCode::ACCEL_SENSOR_Z:
-            Serial.print("Z-Acceleration: ");
-            break;
+              if (sensorDataParsed[i][1] < MIN_Z_ACCEL_VALUE) {
+                // TODO: Add fall error to ControlLED
+                cl.setLEDState(ControlLED::POWERERROR);
+                foundError = true;
+              // } else {
+              //   cl.setLEDState(ControlLED::OK);
+              }
+
+              Serial.print("Z-Acceleration: ");
+              break;
 
             case SensorCode::GYRO_SENSOR_X:
-            Serial.print("X-Gyroscope: ");
-            break;
+              // Doesn't currently check this value
+              Serial.print("X-Gyroscope: ");
+              break;
 
             case SensorCode::GYRO_SENSOR_Y:
-            Serial.print("Y-Gyroscope: ");
-            break;
+              // Doesn't currently check this value
+              Serial.print("Y-Gyroscope: ");
+              break;
 
             case SensorCode::GYRO_SENSOR_Z:
-            Serial.print("Z-Gyroscope: ");
-            break;
+              // Doesn't currently check this value
+              Serial.print("Z-Gyroscope: ");
+              break;
             
             case SensorCode::HUMIDITY_SENSOR:
-            Serial.print("Humidity: ");
-            break;
+              if (MAX_HUM < sensorDataParsed[i][1]) {
+                cl.setLEDState(ControlLED::HUMIDERROR);
+                foundError = true;
+              // } else {
+              //   cl.setLEDState(ControlLED::OK);
+              }
+
+              Serial.print("Humidity: ");
+              break;
             
             case SensorCode::TEMPERATURE_SENSOR:
-            Serial.print("Temperature: ");
-            break;
+              if (sensorDataParsed[i][1] < MIN_TEMP && MAX_TEMP < sensorDataParsed[i][1]) {
+                cl.setLEDState(ControlLED::TEMPERROR);
+                foundError = true;
+              // } else {
+              //   cl.setLEDState(ControlLED::OK);
+              }
+
+              Serial.print("Temperature: ");
+              break;
 
             case SensorCode::PRESSURE_SENSOR:
-            Serial.print("Pressure: ");
-            break;
+              // Doesn't currently check this value
+              Serial.print("Pressure: ");
+              break;
 
             default:
-            Serial.print("Other: ");
-            break;
+              Serial.print("Other: ");
+              break;
           }
 
           // Serial.print("id: ");
@@ -210,9 +243,10 @@ void loop() {
         }
         Serial.println("****************");
 
-        
-
         sensorBufferIndex = 0; // Reset incoming Serial buffer index
+        if (foundError == false) {
+          cl.setLEDState(ControlLED::OK);
+        }
 
       } else if (sensorBufferIndex >= SENSOR_BUFFER_SIZE - 1) { // Buffer overflow check
         sensorBufferIndex = 0;
@@ -223,35 +257,23 @@ void loop() {
       }
     }
   }
+
+  checkSystemStatus(); // Update relay with any changes to the LED state
 }
 
-// TODO: Make these functions into exteral libraries
-void checkSystemStatus() {
+// Validate sensor readings over serial on reception
+void verifyIncomingReadings(int key, int value) {
+    // } else if (imu.hasFallen()) {
+  //   cl.setLEDState(ControlLED::WARNING);
+}
+
+// Validate sensors attached to core module
+void verifyLocalReadings() {
   int temp, humid, press;
 
   temp = clim.getCurrentTemperature();
   humid = clim.getCurrentHumidity();
   // press = clim.getCurrentPressure();
-  float b1Volt = b1.getBatteryVoltage();
-  float b2Volt = b2.getBatteryVoltage();
-
-  Serial.print("Temperature: ");
-  Serial.print(temp);
-  Serial.print("\t");
-  Serial.print("Humidity: ");
-  Serial.print(humid);
-  Serial.print("\t");
-  // Serial.print("Pressure: ");
-  // Serial.print(press);
-  Serial.print("Battery 1 (LiPo): ");
-  Serial.print(b1Volt);
-  Serial.print("\t");
-  Serial.print("Battery 2 (NiMH): ");
-  Serial.print(b2Volt);
-  // Serial.print("\t");
-  // Serial.print("Z-Accel: ");
-  // Serial.print(imu.getZAccel());
-  Serial.println();
 
   // Note: This will determine the relative importance of each error
   if (MAX_HUM < humid) {
@@ -260,11 +282,38 @@ void checkSystemStatus() {
     cl.setLEDState(ControlLED::TEMPERROR);
   } else if (!b1.batteryWithinRange() || !b2.batteryWithinRange()) {
     cl.setLEDState(ControlLED::POWERERROR);
-  // } else if (imu.hasFallen()) {
-  //   cl.setLEDState(ControlLED::WARNING);
   } else {
     cl.setLEDState(ControlLED::OK);
   }
+}
+
+// TODO: Make these functions into exteral libraries
+void checkSystemStatus() {
+  // int temp, humid, press;
+
+  // temp = clim.getCurrentTemperature();
+  // humid = clim.getCurrentHumidity();
+  // press = clim.getCurrentPressure();
+  // float b1Volt = b1.getBatteryVoltage();
+  // float b2Volt = b2.getBatteryVoltage();
+
+  // Serial.print("Temperature: ");
+  // Serial.print(temp);
+  // Serial.print("\t");
+  // Serial.print("Humidity: ");
+  // Serial.print(humid);
+  // Serial.print("\t");
+  // Serial.print("Pressure: ");
+  // Serial.print(press);
+  // Serial.print("Battery 1 (LiPo): ");
+  // Serial.print(b1Volt);
+  // Serial.print("\t");
+  // Serial.print("Battery 2 (NiMH): ");
+  // Serial.print(b2Volt);
+  // Serial.print("\t");
+  // Serial.print("Z-Accel: ");
+  // Serial.print(imu.getZAccel());
+  // Serial.println();
   
   if (cl.getLedState() != ControlLED::OK) {
     cr.disablePower();

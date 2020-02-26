@@ -94,7 +94,6 @@ void loop() {
     // ----------- Serial writing ----------- //
 
     Serial.println("Nonvital - polling");
-    Serial.println(millis());
     // Serial.println((int)imu.getZAccel());
     // Serial.println(imu.hasFallen());
 
