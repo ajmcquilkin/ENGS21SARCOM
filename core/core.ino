@@ -2,12 +2,12 @@
   Creating an engine to process input from a number of sources and determine if the repeater is still safe to operate
 
   Sensors
-  - Top:
+  - Peripheral:
   - - Wind
   - - Temperature
   - - Humidity
   - - Accelerometer
-  - Bottom:
+  - Core:
   - - Temperature
   - - Humidity
   - - Battery power
@@ -26,9 +26,7 @@
 #include <ControlRelay.h>
 #include <ControlLED.h>
 #include <BatteryController.h>
-// #include <MotionDetection.h>
 
-// TODO: Serve this to all SLAVE boards
 #define MIN_TEMP -20
 #define MAX_TEMP 80
 #define MAX_HUM 80
@@ -68,7 +66,6 @@ ControlLED cl = ControlLED(3, 5, 6);
 
 BatteryController b1 = BatteryController(A0, BatteryController::LiPo);
 BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
-// MotionDetection imu = MotionDetection();
 
 SoftwareSerial sensorStream = SoftwareSerial(ssRX, ssTX);
 
@@ -100,6 +97,7 @@ void loop() {
     // checkSystemStatus();
 
     /** Run local sensor analysis here */
+    // TODO: Get local and external checking working simultaneously
     // verifyLocalReadings();
   }
 
@@ -181,8 +179,6 @@ void loop() {
                 // TODO: Add fall error to ControlLED
                 cl.setLEDState(ControlLED::POWERERROR);
                 foundError = true;
-              // } else {
-              //   cl.setLEDState(ControlLED::OK);
               }
 
               Serial.print("Z-Acceleration: ");
@@ -207,8 +203,6 @@ void loop() {
               if (MAX_HUM < sensorDataParsed[i][1]) {
                 cl.setLEDState(ControlLED::HUMIDERROR);
                 foundError = true;
-              // } else {
-              //   cl.setLEDState(ControlLED::OK);
               }
 
               Serial.print("Humidity: ");
@@ -218,8 +212,6 @@ void loop() {
               if (sensorDataParsed[i][1] < MIN_TEMP && MAX_TEMP < sensorDataParsed[i][1]) {
                 cl.setLEDState(ControlLED::TEMPERROR);
                 foundError = true;
-              // } else {
-              //   cl.setLEDState(ControlLED::OK);
               }
 
               Serial.print("Temperature: ");
@@ -244,6 +236,8 @@ void loop() {
         Serial.println("****************");
 
         sensorBufferIndex = 0; // Reset incoming Serial buffer index
+
+        // If no errors found, set code to OK
         if (foundError == false) {
           cl.setLEDState(ControlLED::OK);
         }
@@ -259,12 +253,6 @@ void loop() {
   }
 
   checkSystemStatus(); // Update relay with any changes to the LED state
-}
-
-// Validate sensor readings over serial on reception
-void verifyIncomingReadings(int key, int value) {
-    // } else if (imu.hasFallen()) {
-  //   cl.setLEDState(ControlLED::WARNING);
 }
 
 // Validate sensors attached to core module
@@ -287,34 +275,8 @@ void verifyLocalReadings() {
   }
 }
 
-// TODO: Make these functions into exteral libraries
+// Check if system code is OK, if not disable relay
 void checkSystemStatus() {
-  // int temp, humid, press;
-
-  // temp = clim.getCurrentTemperature();
-  // humid = clim.getCurrentHumidity();
-  // press = clim.getCurrentPressure();
-  // float b1Volt = b1.getBatteryVoltage();
-  // float b2Volt = b2.getBatteryVoltage();
-
-  // Serial.print("Temperature: ");
-  // Serial.print(temp);
-  // Serial.print("\t");
-  // Serial.print("Humidity: ");
-  // Serial.print(humid);
-  // Serial.print("\t");
-  // Serial.print("Pressure: ");
-  // Serial.print(press);
-  // Serial.print("Battery 1 (LiPo): ");
-  // Serial.print(b1Volt);
-  // Serial.print("\t");
-  // Serial.print("Battery 2 (NiMH): ");
-  // Serial.print(b2Volt);
-  // Serial.print("\t");
-  // Serial.print("Z-Accel: ");
-  // Serial.print(imu.getZAccel());
-  // Serial.println();
-  
   if (cl.getLedState() != ControlLED::OK) {
     cr.disablePower();
   } else {
@@ -322,6 +284,36 @@ void checkSystemStatus() {
   }
 }
 
+// Print status of all core system modules
+void printSystemStatus() {
+  int temp, humid, press;
+
+  temp = clim.getCurrentTemperature();
+  humid = clim.getCurrentHumidity();
+  press = clim.getCurrentPressure();
+  float b1Volt = b1.getBatteryVoltage();
+  float b2Volt = b2.getBatteryVoltage();
+
+  Serial.print("Temperature: ");
+  Serial.print(temp);
+  Serial.print("\t");
+  Serial.print("Humidity: ");
+  Serial.print(humid);
+  Serial.print("\t");
+  Serial.print("Pressure: ");
+  Serial.print(press);
+  Serial.print("Battery 1 (LiPo): ");
+  Serial.print(b1Volt);
+  Serial.print("\t");
+  Serial.print("Battery 2 (NiMH): ");
+  Serial.print(b2Volt);
+  Serial.print("\t");
+  Serial.print("Z-Accel: ");
+  Serial.print(imu.getZAccel());
+  Serial.println();
+}
+
+// Run through all system codes and cycle relay and LED
 void systemCycleTest() {
   cr.disablePower();
   delay(2000);
