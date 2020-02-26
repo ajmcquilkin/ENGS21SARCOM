@@ -16,7 +16,7 @@ unsigned long nonVitalPreviousMillis = 0;
 const long nonVitalPollingInterval = 1000;
 
 unsigned long vitalPreviousMillis = 0;
-const long vitalPollingInterval = 20;
+const long vitalPollingInterval = 200;
 
 // TODO: Load this from MASTER microcontroller
 enum SensorCode {
@@ -57,21 +57,46 @@ void loop() {
   unsigned long currentMillis = millis();
 
   // Non-blocking delay for vital sensors
-  if (currentMillis - nonVitalPreviousMillis > vitalPollingInterval && imu.hasFallen()) {
-    Serial.println("Vital - has fallen");
+  if (currentMillis - vitalPreviousMillis > vitalPollingInterval) {
     vitalPreviousMillis = currentMillis;
-    
-    Serial.write('<');
-    Serial.print(SensorCode::ACCEL_SENSOR_Z);
-    Serial.write(':');
-    Serial.print((int)imu.getZAccel());
-    Serial.write('>');
+
+    // Serial.println((int)imu.getZAccel());
+    // Serial.println(imu.hasFallen());
+
+    // Check if the imu has fallen every vitalPollingInterval
+    if (imu.hasFallen() == true) {
+      Serial.println("Vital - fall detected");
+
+      // ----------- Serial writing ----------- //
+      
+      Serial.write('<');
+      Serial.print(SensorCode::ACCEL_SENSOR_Z);
+      Serial.write(':');
+      Serial.print((int)imu.getZAccel());
+      Serial.write('>');
+
+      // ----------- sensorDownlink writing ----------- //
+
+      sensorDownlink.write('<');
+      sensorDownlink.print(SensorCode::ACCEL_SENSOR_Z);
+      sensorDownlink.write(':');
+      sensorDownlink.print((int)imu.getZAccel());
+      sensorDownlink.write('>');
+    } else {
+      // Serial.println("Vital - no fall detected");
+    }
   }
 
   // Non-blocking delay for non-vital sensors
   if (currentMillis - nonVitalPreviousMillis > nonVitalPollingInterval) {
-    Serial.println("Nonvital - polling");
     nonVitalPreviousMillis = currentMillis;
+
+    // ----------- Serial writing ----------- //
+
+    Serial.println("Nonvital - polling");
+    Serial.println(millis());
+    // Serial.println((int)imu.getZAccel());
+    // Serial.println(imu.hasFallen());
 
     Serial.write('<');
 
@@ -93,8 +118,10 @@ void loop() {
     Serial.write('>');
     Serial.println();
 
+    // ----------- sensorDownlink writing ----------- //
+
     sensorDownlink.write('<');
-    // Currently 6 sensors
+
     sensorDownlink.print(SensorCode::HUMIDITY_SENSOR);
     sensorDownlink.write(':');
     sensorDownlink.print((int)clim.getCurrentHumidity());
