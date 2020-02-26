@@ -11,7 +11,7 @@ class MotionDetection {
     void init();
 
     bool hasFallen();
-    void setMinAccelThreshold();
+    void setMinAccelThreshold(float minAccelThreshold);
     
     float getZAccel();
 
