@@ -21,6 +21,8 @@
 
 #include <Arduino.h>
 #include "SoftwareSerial.h"
+#include <Wire.h>
+#include "LiquidCrystal_I2C.h"
 
 #include <ClimateSensor.h>
 #include <ControlRelay.h>
@@ -43,6 +45,9 @@ const long pollingInterval = 1000;
 
 char sensorBuffer[SENSOR_BUFFER_SIZE];
 int sensorBufferIndex = 0;
+
+bool systemOK = true;
+ControlLED::LEDState systemError = ControlLED::OK;
 
 // Codes for each sensor, should maintain consistency with all boards in system
 // TODO: Make a method for transmitting this data to all SLAVE boards
@@ -68,6 +73,7 @@ BatteryController b1 = BatteryController(A0, BatteryController::LiPo);
 BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
 
 SoftwareSerial sensorStream = SoftwareSerial(ssRX, ssTX);
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2); // Address, row characters, lines
 
 void setup() {
   Serial.begin(9600);
@@ -76,7 +82,31 @@ void setup() {
   clim.init();
   cr.init();
   cl.init();
-  // imu.init();
+
+  lcd.init();
+  lcd.setCursor(0, 0);
+  
+  lcd.backlight();
+  for (int init = 0; init < 5; init++) {
+    lcd.print("DARTCOM, v1.0.0");
+    lcd.setCursor(0, 1);
+
+    lcd.print("Loading");
+    delay(400);
+
+    for (int p = 0; p < 3; p++) {
+      lcd.print(".");
+      delay(400);
+    }
+    lcd.clear();
+    lcd.setCursor(0, 0);
+  }
+
+  printSystemStatus(cl);
+
+  // Potential power saving in the future
+  // lcd.clear();
+  // lcd.noBacklight();
 
   pinMode(ssEnable, OUTPUT); // MASTER/SLAVE selector
   delay(10);
@@ -277,12 +307,107 @@ void verifyLocalReadings() {
 
 // Check if system code is OK, if not disable relay
 void checkSystemStatus() {
-  if (cl.getLedState() != ControlLED::OK) {
-    cr.disablePower();
-  } else {
-    cr.enablePower();
+  if (cl.getLedState() != ControlLED::OK) { // System error
+
+    // Saves printing if systen already knows what's wrong
+    if (cl.getLedState() != systemError || systemOK == true) {
+      cr.disablePower();
+
+      systemOK = false;
+      systemError = cl.getLedState();
+
+      printSystemStatus(cl);
+    }
+  } else { // System OK
+
+    // Saves printing if system is already OK
+    if (cl.getLedState() != ControlLED::OK || systemOK == false) {
+      cr.enablePower();
+      
+      systemOK = true;
+      systemError = ControlLED::OK;
+
+      printSystemStatus();
+    }
   }
 }
+
+void printSystemStatus(ControlLED &cl) {
+  if (systemOK == true) {
+    // Notify system OK
+    lcd.clear();
+    lcd.print("Status: OK");
+  } else {
+    lcd.clear();
+    lcd.print("Error:");
+    lcd.print(cl.getLedState());
+    // lcd.print(getLEDStateName(cl.getLedState()));
+  }
+}
+
+// Convert SensorCode to readable string name
+const char* getSensorCodeName(SensorCode s) {
+  switch(s) {
+    case ACCEL_SENSOR_X:
+      return "Accel[x]";
+
+    case ACCEL_SENSOR_Y:
+      return "Accel[y]";
+    
+    case ACCEL_SENSOR_Z:
+      return "Accel[z]";
+
+    case GYRO_SENSOR_X:
+      return "Gyro[x]";
+
+    case GYRO_SENSOR_Y:
+      return "Gyro[y]";
+    
+    case GYRO_SENSOR_Z:
+      return "Gyro[z]";
+
+    case HUMIDITY_SENSOR:
+      return "Humidity";
+    
+    case PRESSURE_SENSOR:
+      return "Pressure";
+
+    case TEMPERATURE_SENSOR:
+      return "Temperature";
+
+    default:
+      return "NR";
+  }
+}
+
+// const char* getLEDStateName(ControlLED c) {
+//   switch(c) {
+//     // UNDEF, SYSTEMERROR, TEMPERROR, HUMIDERROR, POWERERROR, WARNING, OK
+//     case ControlLED::UNDEF:
+//       return "Undef Error";
+
+//     case ControlLED::SYSTEMERROR:
+//       return "System Error";
+    
+//     case ControlLED::TEMPERROR:
+//       return "Temp Error";
+
+//     case ControlLED::HUMIDERROR:
+//       return "Humid Error";
+
+//     case ControlLED::POWERERROR:
+//       return "Power Error";
+    
+//     case ControlLED::WARNING:
+//       return "Warning";
+
+//     case ControlLED::OK:
+//       return "Normal";
+
+//     default:
+//       return "NR";
+//   }
+// }
 
 // Print status of all core system modules
 void printSystemStatus() {
@@ -290,7 +415,7 @@ void printSystemStatus() {
 
   temp = clim.getCurrentTemperature();
   humid = clim.getCurrentHumidity();
-  press = clim.getCurrentPressure();
+  // press = clim.getCurrentPressure();
   float b1Volt = b1.getBatteryVoltage();
   float b2Volt = b2.getBatteryVoltage();
 
@@ -299,17 +424,14 @@ void printSystemStatus() {
   Serial.print("\t");
   Serial.print("Humidity: ");
   Serial.print(humid);
-  Serial.print("\t");
-  Serial.print("Pressure: ");
-  Serial.print(press);
+  // Serial.print("\t");
+  // Serial.print("Pressure: ");
+  // Serial.print(press);
   Serial.print("Battery 1 (LiPo): ");
   Serial.print(b1Volt);
   Serial.print("\t");
   Serial.print("Battery 2 (NiMH): ");
   Serial.print(b2Volt);
-  Serial.print("\t");
-  Serial.print("Z-Accel: ");
-  Serial.print(imu.getZAccel());
   Serial.println();
 }
 
