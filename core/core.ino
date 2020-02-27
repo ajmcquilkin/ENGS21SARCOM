@@ -40,14 +40,23 @@
 
 #define SENSOR_BUFFER_SIZE 128
 
+#define LCD_ROWS 2
+#define LCD_COLS 16
+
 unsigned long previousMillis = 0;
 const long pollingInterval = 1000;
 
 char sensorBuffer[SENSOR_BUFFER_SIZE];
 int sensorBufferIndex = 0;
 
+// Global systemError state
 bool systemOK = true;
 ControlLED::LEDState systemError = ControlLED::OK;
+
+// For loading data animation during operation
+int loadingAnimationIndex = 0;
+unsigned long previousLoadingAnimationMillis = 0;
+const long loadingAnimationInterval = 500;
 
 // Codes for each sensor, should maintain consistency with all boards in system
 // TODO: Make a method for transmitting this data to all SLAVE boards
@@ -73,7 +82,7 @@ BatteryController b1 = BatteryController(A0, BatteryController::LiPo);
 BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
 
 SoftwareSerial sensorStream = SoftwareSerial(ssRX, ssTX);
-LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, 16, 2); // Address, row characters, lines
+LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, LCD_COLS, LCD_ROWS); // Address, row characters, lines
 
 void setup() {
   Serial.begin(9600);
@@ -122,12 +131,19 @@ void loop() {
   // Non-blocking delay
   if (currentMillis - previousMillis > pollingInterval) {
     previousMillis = currentMillis;
+    dataLoadingAnimation(1);
     // checkSystemStatus();
 
     /** Run local sensor analysis here */
     // TODO: Get local and external checking working simultaneously
     // verifyLocalReadings();
   }
+
+  // // Animate data loading
+  // if (currentMillis - previousLoadingAnimationMillis > loadingAnimationInterval) {
+  //   dataLoadingAnimation(1);
+  //   previousLoadingAnimationMillis = currentMillis;
+  // }
 
   // TODO: Clean this up into functions
   while (sensorStream.available()) {
@@ -333,9 +349,30 @@ void checkSystemStatus() {
 // Print status code and or any errors to system LCD
 void printSystemStatusToLCD() {
   lcd.clear();
+  lcd.setCursor(0, 0);
   lcd.print(systemOK == true ? "Status" : "Error");
   lcd.print(": ");
   lcd.print(getLEDStateName(cl.getLedState()));
+}
+
+// Clear a row and set cursor to (cCol, cRow)
+void clearLCDRow(int row, int cRow = 0, int cCol = 0) {
+  lcd.setCursor(0, row);
+  for (int c = 0; c < LCD_COLS; c++) {
+    lcd.print(" ");
+  }
+  lcd.setCursor(cCol, cRow);
+}
+
+void dataLoadingAnimation(int row) {
+  if (loadingAnimationIndex >= LCD_COLS - 1) {
+    loadingAnimationIndex = 0;
+    clearLCDRow(row, row);
+  } else {
+    lcd.setCursor(loadingAnimationIndex, row);
+    lcd.print(".");
+    loadingAnimationIndex++;
+  }
 }
 
 // Convert SensorCode to readable string name
