@@ -84,6 +84,17 @@ BatteryController b2 = BatteryController(A1, BatteryController::NiMH);
 SoftwareSerial sensorStream = SoftwareSerial(ssRX, ssTX);
 LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, LCD_COLS, LCD_ROWS); // Address, row characters, lines
 
+// Forward declarations
+void verifyLocalReadings();
+void checkSystemStatus();
+void printSystemStatusToLCD();
+void clearLCDRow(int row, int cRow = 0, int cCol = 0);
+void dataLoadingAnimation(int row, char c = '.');
+const char* getSensorCodeName(SensorCode s);
+const char* getLEDStateName(ControlLED::LEDState c);
+void printSystemStatus();
+void systemCycleTest();
+
 void setup() {
   Serial.begin(9600);
   sensorStream.begin(9600);
@@ -131,7 +142,9 @@ void loop() {
   // Non-blocking delay
   if (currentMillis - previousMillis > pollingInterval) {
     previousMillis = currentMillis;
-    dataLoadingAnimation(1);
+
+    dataLoadingAnimation(1, cl.getLedState() == ControlLED::OK ? '.' : 'E');
+    // dataLoadingAnimation(1, '-');
     // checkSystemStatus();
 
     /** Run local sensor analysis here */
@@ -141,7 +154,7 @@ void loop() {
 
   // // Animate data loading
   // if (currentMillis - previousLoadingAnimationMillis > loadingAnimationInterval) {
-  //   dataLoadingAnimation(1);
+  //   dataLoadingAnimation(1, cl.getLedState() == ControlLED::OK ? (char)'.' : (char)'E');
   //   previousLoadingAnimationMillis = currentMillis;
   // }
 
@@ -348,7 +361,7 @@ void checkSystemStatus() {
 
 // Print status code and or any errors to system LCD
 void printSystemStatusToLCD() {
-  lcd.clear();
+  clearLCDRow(0);
   lcd.setCursor(0, 0);
   lcd.print(systemOK == true ? "Status" : "Error");
   lcd.print(": ");
@@ -358,19 +371,22 @@ void printSystemStatusToLCD() {
 // Clear a row and set cursor to (cCol, cRow)
 void clearLCDRow(int row, int cRow = 0, int cCol = 0) {
   lcd.setCursor(0, row);
-  for (int c = 0; c < LCD_COLS; c++) {
+  
+  int col = 0;
+  while (col < LCD_COLS) {
     lcd.print(" ");
+    col++;
   }
   lcd.setCursor(cCol, cRow);
 }
 
-void dataLoadingAnimation(int row) {
+void dataLoadingAnimation(int row, char c = '.') {
   if (loadingAnimationIndex >= LCD_COLS - 1) {
     loadingAnimationIndex = 0;
     clearLCDRow(row, row);
   } else {
     lcd.setCursor(loadingAnimationIndex, row);
-    lcd.print(".");
+    lcd.write(c);
     loadingAnimationIndex++;
   }
 }
@@ -390,14 +406,14 @@ const char* getSensorCodeName(SensorCode s) {
 }
 
 const char* getLEDStateName(ControlLED::LEDState c) {
-  if (c == ControlLED::UNDEF) return "Undefined";
-    else if (c == ControlLED::SYSTEMERROR) return "System Error";
-    else if (c == ControlLED::TEMPERROR) return "Temp Range";
-    else if (c == ControlLED::HUMIDERROR) return "Humidity";
-    else if (c == ControlLED::POWERERROR) return "Power";
-    else if (c == ControlLED::WARNING) return "Warning";
-    else if (c == ControlLED::OK) return "Normal";
-    else return "NR";
+  if (c == ControlLED::UNDEF) { return "Undefined"; }
+  else if (c == ControlLED::SYSTEMERROR) { return "System Error"; }
+  else if (c == ControlLED::TEMPERROR) { return "Temp Range"; }
+  else if (c == ControlLED::HUMIDERROR) { return "Humidity"; }
+  else if (c == ControlLED::POWERERROR) { return "Power"; }
+  else if (c == ControlLED::WARNING) { return "Warning"; }
+  else if (c == ControlLED::OK) { return "Normal"; }
+  else { return "NR"; }
 }
 
 // Print status of all core system modules
