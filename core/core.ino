@@ -408,7 +408,7 @@ void clearLCDRow(int row, int cRow = 0, int cCol = 0) {
 }
 
 void dataLoadingAnimation(int row, char c = '.') {
-  if (loadingAnimationIndex >= LCD_COLS - 1) {
+  if (loadingAnimationIndex > LCD_COLS - 1) {
     loadingAnimationIndex = 0;
     clearLCDRow(row, row);
   } else {
