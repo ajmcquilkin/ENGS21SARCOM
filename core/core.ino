@@ -102,7 +102,7 @@ void setup() {
     lcd.setCursor(0, 0);
   }
 
-  printSystemStatus(cl);
+  printSystemStatusToLCD();
 
   // Potential power saving in the future
   // lcd.clear();
@@ -316,7 +316,7 @@ void checkSystemStatus() {
       systemOK = false;
       systemError = cl.getLedState();
 
-      printSystemStatus(cl);
+      printSystemStatusToLCD();
     }
   } else { // System OK
 
@@ -327,12 +327,12 @@ void checkSystemStatus() {
       systemOK = true;
       systemError = ControlLED::OK;
 
-      printSystemStatus();
+      printSystemStatusToLCD();
     }
   }
 }
 
-void printSystemStatus(ControlLED &cl) {
+void printSystemStatusToLCD() {
   if (systemOK == true) {
     // Notify system OK
     lcd.clear();
