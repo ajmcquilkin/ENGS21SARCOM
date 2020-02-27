@@ -102,6 +102,9 @@ void setup() {
     lcd.setCursor(0, 0);
   }
 
+  cl.setLEDState(ControlLED::OK);
+  cr.enablePower();
+  delay(10);
   printSystemStatusToLCD();
 
   // Potential power saving in the future
@@ -111,11 +114,6 @@ void setup() {
   pinMode(ssEnable, OUTPUT); // MASTER/SLAVE selector
   delay(10);
   digitalWrite(ssEnable, LOW); // Slave needs enable LOW
-
-  cl.setLEDState(ControlLED::OK);
-  cr.enablePower();
-  // delay(2000);
-  // systemCycleTest();
 }
 
 void loop() {
@@ -332,82 +330,38 @@ void checkSystemStatus() {
   }
 }
 
+// Print status code and or any errors to system LCD
 void printSystemStatusToLCD() {
-  if (systemOK == true) {
-    // Notify system OK
-    lcd.clear();
-    lcd.print("Status: OK");
-  } else {
-    lcd.clear();
-    lcd.print("Error:");
-    lcd.print(cl.getLedState());
-    // lcd.print(getLEDStateName(cl.getLedState()));
-  }
+  lcd.clear();
+  lcd.print(systemOK == true ? "Status" : "Error");
+  lcd.print(": ");
+  lcd.print(getLEDStateName(cl.getLedState()));
 }
 
 // Convert SensorCode to readable string name
 const char* getSensorCodeName(SensorCode s) {
-  switch(s) {
-    case ACCEL_SENSOR_X:
-      return "Accel[x]";
-
-    case ACCEL_SENSOR_Y:
-      return "Accel[y]";
-    
-    case ACCEL_SENSOR_Z:
-      return "Accel[z]";
-
-    case GYRO_SENSOR_X:
-      return "Gyro[x]";
-
-    case GYRO_SENSOR_Y:
-      return "Gyro[y]";
-    
-    case GYRO_SENSOR_Z:
-      return "Gyro[z]";
-
-    case HUMIDITY_SENSOR:
-      return "Humidity";
-    
-    case PRESSURE_SENSOR:
-      return "Pressure";
-
-    case TEMPERATURE_SENSOR:
-      return "Temperature";
-
-    default:
-      return "NR";
-  }
+  if (s == ACCEL_SENSOR_X) return "Accel[x]";
+  else if (s == ACCEL_SENSOR_Y) return "Accel[y]";
+  else if (s == ACCEL_SENSOR_Z) return "Accel[z]";
+  else if (s == GYRO_SENSOR_X) return "Gyro[x]";
+  else if (s == GYRO_SENSOR_Y) return "Gyro[y]";
+  else if (s == GYRO_SENSOR_Z) return "Gyro[z]";
+  else if (s == HUMIDITY_SENSOR) return "Humidity";
+  else if (s == PRESSURE_SENSOR) return "Pressure";
+  else if (s == TEMPERATURE_SENSOR) return "Temperature";
+  else return "NR";
 }
 
-// const char* getLEDStateName(ControlLED c) {
-//   switch(c) {
-//     // UNDEF, SYSTEMERROR, TEMPERROR, HUMIDERROR, POWERERROR, WARNING, OK
-//     case ControlLED::UNDEF:
-//       return "Undef Error";
-
-//     case ControlLED::SYSTEMERROR:
-//       return "System Error";
-    
-//     case ControlLED::TEMPERROR:
-//       return "Temp Error";
-
-//     case ControlLED::HUMIDERROR:
-//       return "Humid Error";
-
-//     case ControlLED::POWERERROR:
-//       return "Power Error";
-    
-//     case ControlLED::WARNING:
-//       return "Warning";
-
-//     case ControlLED::OK:
-//       return "Normal";
-
-//     default:
-//       return "NR";
-//   }
-// }
+const char* getLEDStateName(ControlLED::LEDState c) {
+  if (c == ControlLED::UNDEF) return "Undefined";
+    else if (c == ControlLED::SYSTEMERROR) return "System Error";
+    else if (c == ControlLED::TEMPERROR) return "Temp Range";
+    else if (c == ControlLED::HUMIDERROR) return "Humidity";
+    else if (c == ControlLED::POWERERROR) return "Power";
+    else if (c == ControlLED::WARNING) return "Warning";
+    else if (c == ControlLED::OK) return "Normal";
+    else return "NR";
+}
 
 // Print status of all core system modules
 void printSystemStatus() {
