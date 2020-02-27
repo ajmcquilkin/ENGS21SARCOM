@@ -58,6 +58,18 @@ int loadingAnimationIndex = 0;
 unsigned long previousLoadingAnimationMillis = 0;
 const long loadingAnimationInterval = 500;
 
+bool networkIconEnabled = false;
+byte networkIcon[] = {
+  B00000,
+  B01110,
+  B10001,
+  B00000,
+  B01110,
+  B00000,
+  B00100,
+  B00000
+};
+
 // Codes for each sensor, should maintain consistency with all boards in system
 // TODO: Make a method for transmitting this data to all SLAVE boards
 enum SensorCode {
@@ -87,6 +99,7 @@ LiquidCrystal_I2C lcd = LiquidCrystal_I2C(0x27, LCD_COLS, LCD_ROWS); // Address,
 // Forward declarations
 void verifyLocalReadings();
 void checkSystemStatus();
+void displayNetworkIcon();
 void printSystemStatusToLCD();
 void clearLCDRow(int row, int cRow = 0, int cCol = 0);
 void dataLoadingAnimation(int row, char c = '.');
@@ -105,6 +118,9 @@ void setup() {
 
   lcd.init();
   lcd.setCursor(0, 0);
+
+  // https://maxpromer.github.io/LCD-Character-Creator/
+  lcd.createChar(0, networkIcon); // Init network icon as byte0
   
   lcd.backlight();
   for (int init = 0; init < 5; init++) {
@@ -169,7 +185,7 @@ void loop() {
 
       // If final character received, process then reset
       if (sensorBuffer[sensorBufferIndex] == '>') {
-
+        displayNetworkIcon();
         /**
          * NOTE: Parse each level in separate, non-nested while loops to maintain strtok() consistency
         */
@@ -356,6 +372,17 @@ void checkSystemStatus() {
 
       printSystemStatusToLCD();
     }
+  }
+}
+
+void displayNetworkIcon() {
+  lcd.setCursor(LCD_COLS - 1, 0);
+  if (networkIconEnabled) {
+    networkIconEnabled = false;
+    lcd.print(' ');
+  } else {
+    networkIconEnabled = true;
+    lcd.write(0);
   }
 }
 
