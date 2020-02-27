@@ -143,7 +143,7 @@ void loop() {
   if (currentMillis - previousMillis > pollingInterval) {
     previousMillis = currentMillis;
 
-    dataLoadingAnimation(1, cl.getLedState() == ControlLED::OK ? '.' : 'E');
+    dataLoadingAnimation(1, cl.getLedState() == ControlLED::OK ? '.' : getErrorCodeLetter(cl.getLedState()));
     // dataLoadingAnimation(1, '-');
     // checkSystemStatus();
 
@@ -414,6 +414,18 @@ const char* getLEDStateName(ControlLED::LEDState c) {
   else if (c == ControlLED::WARNING) { return "Warning"; }
   else if (c == ControlLED::OK) { return "Normal"; }
   else { return "NR"; }
+}
+
+// Gets letter to display for corresponding error on LCD
+char getErrorCodeLetter(ControlLED::LEDState c) {
+  if (c == ControlLED::UNDEF) { return 'U'; }
+  else if (c == ControlLED::SYSTEMERROR) { return 'S'; }
+  else if (c == ControlLED::TEMPERROR) { return 'T'; }
+  else if (c == ControlLED::HUMIDERROR) { return 'H'; }
+  else if (c == ControlLED::POWERERROR) { return 'P'; }
+  else if (c == ControlLED::WARNING) { return 'W'; }
+  else if (c == ControlLED::OK) { return 'N'; }
+  else { return '?'; }
 }
 
 // Print status of all core system modules
